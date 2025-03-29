@@ -1,5 +1,20 @@
-<script>
+<script lang="ts">
+    import { onMount } from 'svelte';
+    import feather from 'feather-icons';
+  
     let searchQuery = ""; // Houdt de waarde van de zoekbalk bij
+  
+    function share() {
+      alert("Deelknop ingedrukt!");
+    }
+  
+    function about() {
+      alert("Over deze pagina!");
+    }
+  
+    onMount(() => {
+      feather.replace(); // Replace all <i> tags with Feather icons
+    });
   </script>
   
   <style>
@@ -8,52 +23,95 @@
       justify-content: space-between;
       align-items: center;
       padding: 10px 20px;
-      background-color: #f8f8f8;
+      background-color: #ffffffd0;
       border-bottom: 2px solid #ddd;
     }
-
-    h1 {
-        font-size: 25px;
+  
+    .search-bar-container {
+      display: flex;
+      align-items: center;
     }
   
     .search-bar {
-      width: 60%;
-      max-width: 500px;
+      width: 175px;
       padding: 8px;
       font-size: 16px;
-      border: 1px solid #ccc;
+      background: #00000010;
       border-radius: 4px;
+      transition: width .2s;
+    }
+
+    .search-bar:focus {
+      width: 220px;
+      outline: none;
     }
   
-    .share-button, .about-button {
+    .logo {
+        flex-grow: 1;
+        text-align: center;
+        font-size: 22px;
+        font-weight: 300;
+        color: #005;
+        display: flex;
+        align-items: center; /* Vertically centers the items */
+        justify-content: center; /* Centers the items horizontally */
+        gap: 10px; /* Optional: Adds space between the logo image and text */
+    }
+
+    .logo img {
+        max-height: 30px;
+        height: auto; /* Ensures the image maintains its aspect ratio */
+    }
+  
+    .buttons {
+      display: flex;
+      gap: 10px;
+    }
+  
+    .button {
       padding: 8px 15px;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
+      background: #ffffff88;
+      /* border: none; */
+      border: 1px solid rgb(233, 233, 255);
+      border-bottom: 2px solid rgb(233, 233, 255);
       border-radius: 4px;
       cursor: pointer;
+      display: flex;
+      align-items: center;
     }
   
-    .share-button:hover {
-      background-color: #45a049;
+    .button .icon {
+      margin-right: 8px;
+      font-size: 12px;
+    }
+  
+    .button:hover {
+      background: #ddd;
     }
   </style>
   
   <div class="header">
-    <input
+    <div class="search-bar-container">
+      <input
       type="text"
       bind:value={searchQuery}
-      placeholder="Zoeken..."
+      placeholder="Zoek op de kaart"
       class="search-bar"
-    />
-
-    <h1>WaterTijdReis</h1>
+      />
+      <i data-feather="search" style="position: relative; right: 30px;" class="icon size-4"></i>
+    </div>
   
-    <button class="about-button">
-        Over WaterTijdReis
-    </button>
-
-    <button class="share-button" on:click={() => alert("Deelknop ingedrukt!")}>
-      Delen
-    </button>
+    <div class="logo">
+      <img src="/logo.png" alt="Logo" />
+      <!-- <h1>WaterTijdReis</h1> -->
+    </div>
+  
+    <div class="buttons">
+      <button class="button" on:click={about}>
+        <i data-feather="map" class="icon size-4"></i> Over WaterTijdReis
+      </button>
+      <button class="button" on:click={share}>
+        <i data-feather="share" class="icon size-4"></i> Deel
+      </button>
+    </div>
   </div>
