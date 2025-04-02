@@ -4,11 +4,10 @@
   import maplibre from 'maplibre-gl';
   import 'maplibre-gl/dist/maplibre-gl.css';
   import { WarpedMapLayer } from '@allmaps/maplibre'
-	import Layer from 'ol/layer/Layer';
-	import type { CustomLayerInterface } from 'maplibre-gl';
 
   let map : maplibre.Map;
   let mapContainer: HTMLDivElement;
+  let selectedImage : ImageBitmap | null = $state(null);
   
   let selectedEditions: Record<number, boolean> = { 1: true, 2: false, 5: true };
   let warpedMapLayers: Record<number, WarpedMapLayer> = {
@@ -60,6 +59,7 @@
       Object.entries(warpedMapLayers).forEach(([edition, layer]) => {
         fetchAndAddLayer(+edition, layer);
         map.addLayer(layer, 'watername_ocean');
+        console.log(layer);
         if(!selectedEditions[+edition]) map.setLayoutProperty(layer.id, 'visibility', 'none');
       });
       map.repaint = true;
@@ -67,17 +67,31 @@
 
     map.on('click', (e) => {
       const { lng, lat } = e.lngLat;
-      console.log(lng,lat);
-      
-      Object.values(warpedMapLayers).forEach(layer => {
-        if (!layer.renderer?.warpedMapList.rtree) return;
-        const hitResults = layer.renderer.warpedMapList.rtree.search({
-          minX: lng,
-          minY: lat,
-          maxX: lng,
-          maxY: lat
-        });
-      });
+      console.log(`Clicked at: ${lng}, ${lat}`);
+
+      for (const edition of Object.keys(warpedMapLayers).sort((a, b) => Number(b) - Number(a))) {
+        if (!selectedEditions[+edition]) continue;
+
+        const layer = warpedMapLayers[+edition];
+        if (!layer.renderer?.warpedMapList.rtree) continue;
+
+        const hitResults = layer.renderer.warpedMapList.rtree.searchFromPoint([lng, lat], true);
+        if (hitResults.length > 0) {
+          const hitImages = hitResults.map(id => layer.renderer?.warpedMapList.warpedMapsById.get(id));
+          console.log(`Topmost hit (Edition ${edition}):`, hitImages[0]);
+          
+          selectedImage = hitImages[0]?.cachedTilesForTexture[0].data;
+          setTimeout(() => {
+            const ctx = document.getElementById('sheetCanvas').getContext('2d');
+            ctx.drawImage(selectedImage, 0, 0)
+          }, 500)
+
+          return hitImages;
+        }
+      }
+
+      console.log('No hit found');
+      return null;
     });
   });
 </script>
@@ -127,6 +141,26 @@
     border: 1px solid rgba(58,86,171);
     border-bottom: 2px solid rgba(58,86,171);
   }
+
+  .sheetOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+
+  .sheetOverlay canvas {
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow: hidden;
+  }
 </style>
 
 <div class="map" bind:this={mapContainer}></div>
@@ -142,3 +176,9 @@
     Show labels
   </label>
 </div>
+
+{#if selectedImage}
+  <div class="sheetOverlay">
+    <canvas id="sheetCanvas" width="400" height="200"></canvas>
+  </div>
+{/if}
