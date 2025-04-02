@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="https://use.typekit.net/dwr8fxs.css">
 <script lang="ts">
     import { onMount } from 'svelte';
     import feather from 'feather-icons';
@@ -24,7 +25,10 @@
       align-items: center;
       padding: 10px 20px;
       background-color: #ffffffd0;
-      border-bottom: 2px solid #ddd;
+      font-family: "ivypresto-display", serif;
+      font-weight: 400;
+      font-style: normal;
+      /* border-bottom: 2px solid #ddd; */
     }
   
     .search-bar-container {
@@ -72,6 +76,7 @@
       padding: 8px 15px;
       background: #ffffff88;
       /* border: none; */
+      /* box-shadow: 3px 3px 9px rgba(0,0,0,.15); */
       border: 1px solid rgb(233, 233, 255);
       border-bottom: 2px solid rgb(233, 233, 255);
       border-radius: 4px;
