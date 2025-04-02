@@ -64,6 +64,21 @@
       });
       map.repaint = true;
     });
+
+    map.on('click', (e) => {
+      const { lng, lat } = e.lngLat;
+      console.log(lng,lat);
+      
+      Object.values(warpedMapLayers).forEach(layer => {
+        if (!layer.renderer?.warpedMapList.rtree) return;
+        const hitResults = layer.renderer.warpedMapList.rtree.search({
+          minX: lng,
+          minY: lat,
+          maxX: lng,
+          maxY: lat
+        });
+      });
+    });
   });
 </script>
 
