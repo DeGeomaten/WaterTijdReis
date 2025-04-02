@@ -60,7 +60,6 @@
       Object.entries(warpedMapLayers).forEach(([edition, layer]) => {
         fetchAndAddLayer(+edition, layer);
         map.addLayer(layer, 'watername_ocean');
-        console.log(layer);
         if(!selectedEditions[+edition]) map.setLayoutProperty(layer.id, 'visibility', 'none');
       });
       map.repaint = true;
