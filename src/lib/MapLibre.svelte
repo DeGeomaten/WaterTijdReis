@@ -209,8 +209,18 @@
     left: 0;
   }
 
+  .checkboxes hr {
+    opacity: 0;
+    margin: 5px;
+    border: 0.5px solid #eee;
+  }
+
+  .checkboxes:hover hr {
+    opacity: 1;
+  }
+
   .checkboxes label {
-    padding: 5px;
+    padding: 3px;
     display: block;
   }
 
@@ -318,6 +328,7 @@
       <span class="description">Editie {edition}</span>
     </label>
   {/each}
+  <hr>
   <label>
     <input type="checkbox" checked={showLabels} on:change={toggleLabels} />
     <i data-feather="tag" class="icon size-3" style="left: -22px; top: -2px;"></i>
