@@ -74,7 +74,7 @@
         console.log(layer);
         if(!selectedEditions[+edition]) map.setLayoutProperty(layer.id, 'visibility', 'none');
       });
-      // map.repaint = true;
+      map.repaint = true;
 
       map.setPaintProperty('water', 'fill-color', 'rgb(230,221,196)');
       map.setPaintProperty('water_shadow', 'fill-color', 'rgb(230,221,196)');
