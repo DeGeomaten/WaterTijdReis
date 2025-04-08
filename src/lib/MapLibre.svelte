@@ -26,6 +26,7 @@
   };
 
   let showLabels : boolean = true;
+  let showWater : boolean = false;
 
   let selectedSheet = null;
   let selectedSheetFullScreen = false;
@@ -55,6 +56,17 @@
     });
   }
 
+  function toggleWater() {
+    showWater = !showWater;
+
+    Object.values(warpedMapLayers).forEach(layer => {
+      map.moveLayer(layer.id, showWater ? 'water' : (showLabels ? 'watername_ocean' : undefined));
+    });
+
+    map.setPaintProperty('water', 'fill-color', showWater ? '#b0d0d6' : 'rgb(210,201,176)');
+    map.setPaintProperty('water_shadow', 'fill-color', showWater ? 'rgba(203, 225, 228, 1)' : 'rgb(230,221,196)');
+  }
+
   onMount(() => {
     feather.replace();
 
@@ -76,8 +88,10 @@
       });
       map.repaint = true;
 
-      map.setPaintProperty('water', 'fill-color', 'rgb(230,221,196)');
+      console.log(map.getStyle().layers);
+      map.setPaintProperty('water', 'fill-color', 'rgb(210,201,176)');
       map.setPaintProperty('water_shadow', 'fill-color', 'rgb(230,221,196)');
+
     });
 
     map.addControl(new maplibre.NavigationControl(), 'bottom-left');
@@ -307,7 +321,12 @@
   <label>
     <input type="checkbox" checked={showLabels} on:change={toggleLabels} />
     <i data-feather="tag" class="icon size-3" style="left: -22px; top: -2px;"></i>
-    <span class="description" style="position: relative; left: -10px;">Toon labels</span>
+    <span class="description" style="position: relative; left: -10px;">Labels</span>
+  </label>
+  <label>
+    <input type="checkbox" checked={showWater} on:change={toggleWater} />
+    <i data-feather="droplet" class="icon size-3" style="left: -23px; top: -3px;"></i>
+    <span class="description" style="position: relative; left: -10px;">Water</span>
   </label>
 </div>
 
