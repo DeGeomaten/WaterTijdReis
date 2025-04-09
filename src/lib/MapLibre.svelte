@@ -1,6 +1,6 @@
 <link rel="stylesheet" href="https://use.typekit.net/dwr8fxs.css">
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onDestroy, onMount } from 'svelte';
   import { tick } from 'svelte';
   import feather from 'feather-icons';
   import maplibre from 'maplibre-gl';
@@ -36,7 +36,7 @@
     try {
       const response = await fetch(url);
       const annotationData = await response.json();
-      annotationData.items = annotationData.items.filter(i => i.id !== "96288818005190560268211324390159543196.jp2");
+      // annotationData.items = annotationData.items.filter(i => i.id !== "96288818005190560268211324390159543196.jp2"); // TODO: remove
       layer.addGeoreferenceAnnotation(annotationData);
     } catch (error) {
       console.error(`Error loading edition ${edition}:`, error);
@@ -67,8 +67,35 @@
     map.setPaintProperty('water_shadow', 'fill-color', showWater ? 'rgba(203, 225, 228, 1)' : 'rgb(230,221,196)');
   }
 
+  function handleKeyDown(event) {
+    const key = event.code;
+    if (['Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5'].includes(key)) {
+      const edition = Number(key.slice(-1));
+      if(event.shiftKey) for(let i = 1; i <= 5; ++i) {
+        if(selectedEditions[i]) toggleEdition(i);
+      }
+      toggleEdition(edition);
+    } else if (key === 'Digit6') {
+      toggleLabels();
+    } else if (key === 'Digit7') {
+      toggleWater();
+    }
+
+    if(key == 'Escape') {
+      selectedSheet = null;
+      map.setLayoutProperty('dynamic-polygon-line-1', 'visibility', 'none');
+      map.setLayoutProperty('dynamic-polygon-line-2', 'visibility', 'none');
+    }
+  }
+
+  // TODO: ?
+  // onDestroy(() => {
+  //   window.removeEventListener('keydown', handleKeyDown);
+  // })
+
   onMount(() => {
     feather.replace();
+    window.addEventListener('keydown', handleKeyDown);
 
     map = new maplibre.Map({
       container: mapContainer,
@@ -91,9 +118,9 @@
       console.log(map.getStyle().layers);
       map.setPaintProperty('water', 'fill-color', 'rgb(210,201,176)');
       map.setPaintProperty('water_shadow', 'fill-color', 'rgb(230,221,196)');
-
     });
 
+    map.addControl(new maplibre.ScaleControl({ maxWidth: 150, unit: 'metric' }), 'bottom-right');
     map.addControl(new maplibre.NavigationControl(), 'bottom-left');
 
     map.on('click', (e) => {
@@ -126,6 +153,8 @@
     const sourceId = 'dynamic-polygon';
 
     if (map.getSource(sourceId)) {
+      map.setLayoutProperty('dynamic-polygon-line-1', 'visibility', 'visible');
+      map.setLayoutProperty('dynamic-polygon-line-2', 'visibility', 'visible');
       map.getSource(sourceId).setData({
         type: 'Feature',
         geometry: polygonGeoJson
@@ -140,7 +169,7 @@
       });
 
       map.addLayer({
-        id: sourceId + 'line-2',
+        id: sourceId + '-line-2',
         type: 'line',
         source: sourceId,
         paint: {
@@ -316,6 +345,18 @@
     width: 80vw;
     margin: 150px auto;
     box-shadow: 6px 6px 20px rgba(0,0,0,.5);
+  }
+
+  :global(.maplibregl-ctrl-scale) {
+    background-color: transparent;
+    color: black;
+    font-family: "Inter", serif;
+    font-weight: 500;
+    font-style: normal;
+    font-size: 12px;
+    text-align: right;
+    border: 2px solid #00000055;
+    border-top: none;
   }
 </style>
 
