@@ -1,20 +1,21 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
-    import feather from 'feather-icons';
-  
-    export let label: string;
-    export let icon: string;
-    export let onClick: () => void = () => {};
-  
-    onMount(() => {
-      feather.replace();
-    });
-  </script>
-  
-  <button on:click={onClick} class="button">
-    <i data-feather={icon}></i>
-    {label}
-  </button>
+  import { createEventDispatcher, onMount } from 'svelte';
+  import feather from 'feather-icons';
+
+  export let label: string;
+  export let icon: string;
+
+  const dispatch = createEventDispatcher();
+
+  onMount(() => {
+    feather.replace();
+  });
+</script>
+
+<button on:click={() => dispatch('click')} class="button">
+  <i data-feather={icon}></i>
+  {label}
+</button>
   
   <style>
     .button {
@@ -30,11 +31,7 @@
       font-size: 14px;
     }
 
-    .buttons {
-  display: flex;
-  gap: 10px; /* afstand tussen de knoppen */
-}
-  
+
     .button:hover {
       background-color: #f0f0f0;
     }

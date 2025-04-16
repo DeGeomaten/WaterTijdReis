@@ -3,20 +3,35 @@
     import { onMount } from 'svelte';
     import feather from 'feather-icons';
     import Button from './Button.svelte';
+    import { goto } from '$app/navigation';
+
+  function share() {
+    alert("Deelknop ingedrukt!");
+  }
+
+  function about() {
+    alert("Over deze pagina!");
+  }
+
+
 
     let searchQuery = ""; // Houdt de waarde van de zoekbalk bij
   
-    function share() {
-      alert("Deelknop ingedrukt!");
-    }
+    // function share() {
+    //   alert("Deelknop ingedrukt!");
+    // }
   
-    function about() {
-      alert("Over deze pagina!");
-    }
+    // function about() {
+    //   alert("Over deze pagina!");
+    // }
   
     onMount(() => {
       feather.replace(); // Replace all <i> tags with Feather icons
     });
+
+    
+   
+
   </script>
   
   <style>
@@ -126,9 +141,11 @@
       </svg>
       <!-- <h1>WaterTijdReis</h1> -->
     </div>
-  
+    
+    
+
     <div class="buttons">
-      <Button label="Over WaterTijdReis" icon="map" on:click={about} />
+      <Button label="Over WaterTijdReis" icon="map" on:click={() => goto('/about')} />
       <Button label="Deel" icon="share" on:click={share} />
     </div>
     
