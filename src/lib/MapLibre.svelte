@@ -7,6 +7,10 @@
   import 'maplibre-gl/dist/maplibre-gl.css';
   import { WarpedMapLayer } from '@allmaps/maplibre'
 
+  import { mapInstance } from '../stores/mapInstance';
+  import { warpedMapLayers } from '../stores/warpedMapLayers';
+  import { mapsInViewport } from '../stores/mapsInViewport'; // TODO 
+
   $: if (selectedSheet) {
     tick().then(() => {
       feather.replace();
@@ -17,13 +21,6 @@
   let mapContainer: HTMLDivElement;
   
   let selectedEditions: Record<number, boolean> = { 1: false, 2: false, 3: true, 4: false, 5: false };
-  let warpedMapLayers: Record<number, WarpedMapLayer> = {
-    1: new WarpedMapLayer("warped-map-1"),
-    2: new WarpedMapLayer("warped-map-2"),
-    3: new WarpedMapLayer("warped-map-3"),
-    4: new WarpedMapLayer("warped-map-4"),
-    5: new WarpedMapLayer("warped-map-5")
-  };
 
   let showLabels : boolean = true;
   let showWater : boolean = false;
@@ -37,7 +34,28 @@
       const response = await fetch(url);
       const annotationData = await response.json();
       // annotationData.items = annotationData.items.filter(i => i.id !== "96288818005190560268211324390159543196.jp2"); // TODO: remove
-      layer.addGeoreferenceAnnotation(annotationData);
+      await layer.addGeoreferenceAnnotation(annotationData);
+
+      // const polygonsById = layer.renderer?.warpedMapList.rtree.polygonsById;
+      // const masks = {
+      //   type: 'FeatureCollection',
+      //   features: Array.from(polygonsById.entries()).map(([id, geometry]) => ({
+      //     type: 'Feature',
+      //     geometry,
+      //     properties: { id }
+      //   }))
+      // };
+
+      // map.addSource('my-polygons-' + edition, { type: 'geojson', data: masks });
+      // map.addLayer({
+      //   id: 'my-polygons-outline-' + edition,
+      //   type: 'line',
+      //   source: 'my-polygons-' + edition,
+      //   paint: {
+      //     'line-color': '#000',
+      //     'line-width': 1
+      //   }
+      // });
     } catch (error) {
       console.error(`Error loading edition ${edition}:`, error);
     }
@@ -105,20 +123,30 @@
       maxPitch: 0,
       preserveDrawingBuffer: true
     });
+    mapInstance.set(map);
 
     map.on('load', () => {
       Object.entries(warpedMapLayers).forEach(([edition, layer]) => {
         fetchAndAddLayer(+edition, layer);
         map.addLayer(layer, 'watername_ocean');
-        console.log(layer);
+        
         if(!selectedEditions[+edition]) map.setLayoutProperty(layer.id, 'visibility', 'none');
       });
-      map.repaint = true;
 
-      console.log(map.getStyle().layers);
       map.setPaintProperty('water', 'fill-color', 'rgb(210,201,176)');
       map.setPaintProperty('water_shadow', 'fill-color', 'rgb(230,221,196)');
+
+      console.log(warpedMapLayers[3])
     });
+
+    map.on('idle', () => { map.triggerRepaint(); updateMapsInViewportIds(); }); // TODO: why does the basemap disappear?
+
+    map.on('move', updateMapsInViewportIds);
+
+    function updateMapsInViewportIds() {
+      const mapsInViewportIds = Array.from(warpedMapLayers[3].renderer?.mapsInViewport);  
+      mapsInViewport.set(mapsInViewportIds.map(mapId => warpedMapLayers[3].renderer?.warpedMapList.warpedMapsById.get(mapId)));
+    }
 
     map.addControl(new maplibre.ScaleControl({ maxWidth: 150, unit: 'metric' }), 'bottom-right');
     map.addControl(new maplibre.NavigationControl(), 'bottom-left');
@@ -137,9 +165,21 @@
         if (hitResults.length > 0) {
           const hitImages = hitResults.map(id => layer.renderer?.warpedMapList.warpedMapsById.get(id));
           selectedSheet = hitImages[0];
+          
+          showPolygonOnMap(map, hitImages[0]?.geoMask)
           console.log(`Topmost hit (Edition ${edition}):`, hitImages[0]);
 
-          showPolygonOnMap(map, hitImages[0]?.geoMask)
+          hitImages[0].georeferencedMap.resourceMask[0][0] = 0;
+          hitImages[0].georeferencedMap.resourceMask[0][1] = 10000;
+          hitImages[0].georeferencedMap.resourceMask[1][0] = 10000;
+          hitImages[0].georeferencedMap.resourceMask[1][1] = 10000;
+          hitImages[0].georeferencedMap.resourceMask[2][0] = 10000;
+          hitImages[0].georeferencedMap.resourceMask[2][1] = 0;
+          hitImages[0].georeferencedMap.resourceMask[3][0] = 0;
+          hitImages[0].georeferencedMap.resourceMask[3][1] = 0;
+          const id = hitImages[0]?.mapId;
+          if (id) layer.renderer.warpedMapList.zIndices.set(id, 10000000);
+
           return hitImages;
         }
       }
@@ -198,7 +238,7 @@
 
 <style>
   .map {
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
     width: 100%;
