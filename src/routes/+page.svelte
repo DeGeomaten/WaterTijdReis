@@ -7,3 +7,9 @@
     <Header/>
     <MapLibre/>
 </main>
+
+<style>
+    * {
+        user-select: none;
+    }
+</style>
