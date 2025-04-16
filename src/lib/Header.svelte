@@ -2,20 +2,36 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import feather from 'feather-icons';
-  
+    import Button from './Button.svelte';
+    import { goto } from '$app/navigation';
+
+  function share() {
+    alert("Deelknop ingedrukt!");
+  }
+
+  function about() {
+    alert("Over deze pagina!");
+  }
+
+
+
     let searchQuery = ""; // Houdt de waarde van de zoekbalk bij
   
-    function share() {
-      alert("Deelknop ingedrukt!");
-    }
+    // function share() {
+    //   alert("Deelknop ingedrukt!");
+    // }
   
-    function about() {
-      alert("Over deze pagina!");
-    }
+    // function about() {
+    //   alert("Over deze pagina!");
+    // }
   
     onMount(() => {
       feather.replace(); // Replace all <i> tags with Feather icons
     });
+
+    
+   
+
   </script>
   
   <style>
@@ -24,7 +40,7 @@
       justify-content: space-between;
       align-items: center;
       padding: 10px 20px;
-      /* background-color: #ffffffd0; */
+      background-color: #ffffffd0;
       font-family: "ivypresto-display", serif;
       font-weight: 400;
       font-style: normal;
@@ -69,33 +85,10 @@
     }
   
     .buttons {
-      display: flex;
-      gap: 10px;
-    }
-  
-    .button {
-      padding: 8px 15px;
-      /* border: none; */
-      /* box-shadow: 3px 3px 9px rgba(0,0,0,.15); */
-      /* border: 1px solid rgb(233, 233, 255); */
-      /* border-bottom: 2px solid rgb(233, 233, 255); */
-      border-radius: 4px;
-      background: #ffffffff;
-      outline: 2px solid #00000022;
-      border-radius: 4px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-    }
-  
-    .button .icon {
-      margin-right: 8px;
-      font-size: 12px;
-    }
-  
-    .button:hover {
-      background: #ddd;
-    }
+  display: flex;
+  gap: 10px; /* afstand tussen de knoppen */
+}
+
   </style>
   
   <div class="header">
@@ -148,13 +141,13 @@
       </svg>
       <!-- <h1>WaterTijdReis</h1> -->
     </div>
-  
+    
+    
+
     <div class="buttons">
-      <button class="button" on:click={about}>
-        <i data-feather="map" class="icon size-4"></i> Over WaterTijdReis
-      </button>
-      <button class="button" on:click={share}>
-        <i data-feather="share" class="icon size-4"></i> Deel
-      </button>
+      <Button label="Over WaterTijdReis" icon="map" on:click={() => goto('/about')} />
+      <Button label="Deel" icon="share" on:click={share} />
     </div>
-  </div>
+    
+    </div>
+ 
