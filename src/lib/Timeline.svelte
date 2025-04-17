@@ -37,12 +37,17 @@
   let dragStartY: number | null = null;
 
   function yearToCanvas(year: number): number {
-    return ((year - startYear) / (endYear - startYear)) * height;
+    const sy = Math.min(startYear, endYear);
+    const ey = Math.max(startYear, endYear);
+    return ((year - sy) / (ey - sy)) * height;
   }
 
   function canvasToYear(y: number): number {
-    return (y / height) * (endYear - startYear) + startYear;
-  }
+  const sy = Math.min(startYear, endYear);
+  const ey = Math.max(startYear, endYear);
+  return (y / height) * (ey - sy) + sy;
+}
+
 
   function resizeCanvas() {
     dpr = window.devicePixelRatio || 1;
@@ -63,9 +68,18 @@
     startYear = lerp(startYear, targetStartYear, 0.1);
     endYear = lerp(endYear, targetEndYear, 0.1);
 
+    startYear = Math.max(MIN_YEAR, Math.min(MAX_YEAR, startYear));
+    endYear = Math.max(MIN_YEAR, Math.min(MAX_YEAR, endYear));
+
     const width = canvas.clientWidth;
     const height = canvas.clientHeight;
     ctx.clearRect(0, 0, width, height);
+
+    if (startYear > endYear) {
+    const temp = startYear;
+    startYear = endYear;
+    endYear = temp;
+  }
 
     drawTimeline(ctx, startYear, endYear);
 
@@ -246,15 +260,21 @@
   function handleWheel(e: WheelEvent) {
     e.preventDefault();
 
-    const zoomAmount = e.deltaY / 100 + 1;
+    const zoomFactor = Math.min(Math.max(e.deltaY / 100, -0.2), 0.2); // max ±20% zoom
+    const zoomAmount = 1 + zoomFactor;
     const rect = canvas.getBoundingClientRect();
     const cursorY = e.clientY - rect.top;
     const cursorYear = canvasToYear(cursorY);
 
-    const newRange = (targetEndYear - targetStartYear) * zoomAmount;
-    let newStart = cursorYear - ((cursorYear - targetStartYear) * zoomAmount);
+    let currentRange = targetEndYear - targetStartYear;
+    let newRange = currentRange * zoomAmount;
+  
+    // ⛔️ Houd minimaal 1 jaar zichtbaar
+    newRange = Math.max(1, newRange);
+  
+    let newStart = cursorYear - ((cursorYear - targetStartYear) * (newRange / currentRange));
     let newEnd = newStart + newRange;
-
+  
     targetStartYear = Math.max(newStart, MIN_YEAR);
     targetEndYear = Math.min(newEnd, MAX_YEAR);
   }
