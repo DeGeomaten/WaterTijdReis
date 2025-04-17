@@ -42,11 +42,15 @@
   }
 
   function yearToCanvas(year: number): number {
-    return ((year - startYear) / (endYear - startYear)) * timelineHeight;
+    const sy = Math.min(startYear, endYear);
+    const ey = Math.max(startYear, endYear);
+    return ((year - sy) / (ey - sy)) * timelineHeight;
   }
 
   function canvasToYear(y: number): number {
-    return (y / timelineHeight) * (endYear - startYear) + startYear;
+    const sy = Math.min(startYear, endYear);
+    const ey = Math.max(startYear, endYear);
+    return sy + ((y / timelineHeight) * (ey - sy));
   }
 
   onMount(() => {
@@ -79,10 +83,17 @@
     startYear = lerp(startYear, targetStartYear, 0.1);
     endYear = lerp(endYear, targetEndYear, 0.1);
 
-    ctx.clearRect(0, 0, timelineWidth, timelineHeight);
+    startYear = Math.max(MIN_YEAR, Math.min(startYear, MAX_YEAR));
+    endYear = Math.max(MIN_YEAR, Math.min(endYear, MAX_YEAR));
 
-    ctx.fillStyle = '#f22';
-    ctx.fillRect(0, 0, timelineWidth, timelineHeight);
+    if (startYear > endYear) {
+      const temp = startYear;
+      startYear = endYear;
+      endYear = temp;
+    }
+
+
+    ctx.clearRect(0, 0, timelineWidth, timelineHeight);
 
     drawTimeline(ctx, startYear, endYear);
 
@@ -338,14 +349,19 @@
   function handleWheel(e: WheelEvent) {
     e.preventDefault();
 
-    const zoomAmount = e.deltaY / 100 + 1;
+    const zoomFactor = Math.min(Math.max(e.deltaY / 100, -0.2), 0.2);
+    const zoomAmount = 1 + zoomFactor;
     const rect = canvas.getBoundingClientRect();
     const cursorY = e.clientY - rect.top;
     const cursorYear = canvasToYear(cursorY);
 
-    const newRange = (targetEndYear - targetStartYear) * zoomAmount;
-    let newStart = cursorYear - ((cursorYear - targetStartYear) * zoomAmount);
-    let newEnd = newStart + newRange;
+    let currentRange = targetEndYear - targetStartYear;
+    let newRange = currentRange * zoomAmount;
+
+    newRange = Math.max(newRange, 1); // Prevent zooming out too much
+
+    let newStart = cursorYear - ((cursorYear - targetStartYear) / currentRange) * newRange;
+    let newEnd = cursorYear + ((targetEndYear - cursorYear) / currentRange) * newRange;
 
     targetStartYear = Math.max(newStart, MIN_YEAR);
     targetEndYear = Math.min(newEnd, MAX_YEAR);
