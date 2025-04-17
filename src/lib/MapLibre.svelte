@@ -10,10 +10,24 @@
   import { mapInstance } from '../stores/mapInstance';
   import { warpedMapLayers } from '../stores/warpedMapLayers';
   import { mapsInViewport } from '../stores/mapsInViewport'; // TODO 
-  import { mapHoveredInTimeline } from '../stores/mapHoveredInTimeline';
+  import { mapHoveredInTimeline, mapHoveredInTimelineX, mapHoveredInTimelineY } from '../stores/mapHoveredInTimeline';
 
   $: if(map) {
     showMapHoveredPolygon($mapHoveredInTimeline?.geoMask);
+    const unprojected = map.unproject({ x: mouseX, y: mouseY });
+    if($mapHoveredInTimeline) showLineToTimeline({
+      type: 'LineString',
+      coordinates: [
+        [unprojected.lng, unprojected.lat],
+        [
+          $mapHoveredInTimeline?.geoMask.coordinates[0][0][0],
+          $mapHoveredInTimeline?.geoMask.coordinates[0][0][1]
+        ]
+      ]
+    }) 
+    else {
+      hideLineToTimeline();
+    }
   }
 
   $: if (selectedSheet) {
@@ -21,6 +35,9 @@
       feather.replace();
     });
   }
+
+  let mouseX = 0;
+  let mouseY = 0;
 
   let map : maplibre.Map;
   let mapContainer: HTMLDivElement;
@@ -116,6 +133,27 @@
   //   window.removeEventListener('keydown', handleKeyDown);
   // })
 
+  function showLineToTimeline(lineGeoJson) {
+    const sourceId = 'line-to-timeline';
+    const source = map.getSource(sourceId);
+    if(!source) return;
+
+    source.setData({
+      type: 'Feature',
+      geometry: lineGeoJson
+    });
+
+    map.setLayoutProperty(sourceId + '-line', 'visibility', 'visible');
+  }
+
+  function hideLineToTimeline() {
+    const sourceId = 'line-to-timeline';
+    const source = map.getSource(sourceId);
+    if(!source) return;
+
+    map.setLayoutProperty(sourceId + '-line', 'visibility', 'none');
+  }
+
   function showMapClickedPolygon(polygonGeoJson) {
       const sourceId = 'map-clicked';
       const source = map.getSource(sourceId);
@@ -165,6 +203,10 @@
   onMount(() => {
     feather.replace();
     window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    });
 
     map = new maplibre.Map({
       container: mapContainer,
@@ -188,6 +230,14 @@
       map.setPaintProperty('water', 'fill-color', 'rgb(210,201,176)');
       map.setPaintProperty('water_shadow', 'fill-color', 'rgb(230,221,196)');
 
+      map.addSource('line-to-timeline', {
+        type: 'geojson',
+        data: {
+          type: 'Feature',
+          geometry: { type: 'LineString', coordinates: [] }
+        }
+      });
+
       map.addSource('map-hovered', {
         type: 'geojson',
         data: {
@@ -205,12 +255,25 @@
       });
 
       map.addLayer({
+        id: 'line-to-timeline-line',
+        type: 'line',
+        source: 'line-to-timeline',
+        paint: {
+          'line-color': '#ff0055',
+          'line-width': 1,
+          'line-dasharray': [2, 4]
+        },
+        layout: {
+          visibility: 'none'
+        }
+      });
+      map.addLayer({
         id: 'map-clicked-line',
         type: 'line',
         source: 'map-clicked',
         paint: {
           'line-color': '#f55',
-          'line-width': 2
+          'line-width': 1
         },
         layout: {
           visibility: 'none'
