@@ -10,6 +10,11 @@
   import { mapInstance } from '../stores/mapInstance';
   import { warpedMapLayers } from '../stores/warpedMapLayers';
   import { mapsInViewport } from '../stores/mapsInViewport'; // TODO 
+  import { mapHoveredInTimeline } from '../stores/mapHoveredInTimeline';
+
+  $: if(map) {
+    showMapHoveredPolygon($mapHoveredInTimeline?.geoMask);
+  }
 
   $: if (selectedSheet) {
     tick().then(() => {
@@ -111,18 +116,65 @@
   //   window.removeEventListener('keydown', handleKeyDown);
   // })
 
+  function showMapClickedPolygon(polygonGeoJson) {
+      const sourceId = 'map-clicked';
+      const source = map.getSource(sourceId);
+      if(!source) return;
+
+      source.setData({
+        type: 'Feature',
+        geometry: polygonGeoJson
+      });
+
+      map.setLayoutProperty(sourceId + '-line', 'visibility', 'visible');
+    }
+
+    function hideMapClickedPolygon() {
+      const sourceId = 'map-clicked';
+      const source = map.getSource(sourceId);
+      if(!source) return;
+
+      map.setLayoutProperty(sourceId + '-line', 'visibility', 'none');
+    }
+
+    function showMapHoveredPolygon(polygonGeoJson) {
+      if(polygonGeoJson == null) {
+        hideMapHoveredPolygon();
+        return;
+      }
+      const sourceId = 'map-hovered';
+      const source = map.getSource(sourceId);
+      if(!source) return;
+
+      source.setData({
+        type: 'Feature',
+        geometry: polygonGeoJson
+      });
+
+      map.setLayoutProperty(sourceId + '-line', 'visibility', 'visible');
+    }
+
+    function hideMapHoveredPolygon() {
+      const sourceId = 'map-hovered';
+      const source = map.getSource(sourceId);
+      if(!source) return;
+
+      map.setLayoutProperty(sourceId + '-line', 'visibility', 'none');
+    }
+
   onMount(() => {
     feather.replace();
     window.addEventListener('keydown', handleKeyDown);
 
     map = new maplibre.Map({
       container: mapContainer,
-      style: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
+      style: 'style.json',
       center: [4.55,52.23],
       zoom: 6,
       maxPitch: 0,
       preserveDrawingBuffer: true
     });
+
     mapInstance.set(map);
 
     map.on('load', () => {
@@ -135,6 +187,47 @@
 
       map.setPaintProperty('water', 'fill-color', 'rgb(210,201,176)');
       map.setPaintProperty('water_shadow', 'fill-color', 'rgb(230,221,196)');
+
+      map.addSource('map-hovered', {
+        type: 'geojson',
+        data: {
+          type: 'Feature',
+          geometry: { type: 'Polygon', coordinates: [] }
+        }
+      });
+
+      map.addSource('map-clicked', {
+        type: 'geojson',
+        data: {
+          type: 'Feature',
+          geometry: { type: 'Polygon', coordinates: [] }
+        }
+      });
+
+      map.addLayer({
+        id: 'map-clicked-line',
+        type: 'line',
+        source: 'map-clicked',
+        paint: {
+          'line-color': '#f55',
+          'line-width': 2
+        },
+        layout: {
+          visibility: 'none'
+        }
+      });
+      map.addLayer({
+        id: 'map-hovered-line',
+        type: 'line',
+        source: 'map-hovered',
+        paint: {
+          'line-color': '#f55',
+          'line-width': 2
+        },
+        layout: {
+          visibility: 'none'
+        }
+      });
 
       console.log(warpedMapLayers[3])
     });
@@ -164,21 +257,30 @@
         const hitResults = layer.renderer.warpedMapList.rtree.searchFromPoint([lng, lat], true);
         if (hitResults.length > 0) {
           const hitImages = hitResults.map(id => layer.renderer?.warpedMapList.warpedMapsById.get(id));
-          selectedSheet = hitImages[0];
-          
-          showPolygonOnMap(map, hitImages[0]?.geoMask)
-          console.log(`Topmost hit (Edition ${edition}):`, hitImages[0]);
 
-          hitImages[0].georeferencedMap.resourceMask[0][0] = 0;
-          hitImages[0].georeferencedMap.resourceMask[0][1] = 10000;
-          hitImages[0].georeferencedMap.resourceMask[1][0] = 10000;
-          hitImages[0].georeferencedMap.resourceMask[1][1] = 10000;
-          hitImages[0].georeferencedMap.resourceMask[2][0] = 10000;
-          hitImages[0].georeferencedMap.resourceMask[2][1] = 0;
-          hitImages[0].georeferencedMap.resourceMask[3][0] = 0;
-          hitImages[0].georeferencedMap.resourceMask[3][1] = 0;
-          const id = hitImages[0]?.mapId;
-          if (id) layer.renderer.warpedMapList.zIndices.set(id, 10000000);
+          layer.renderer.warpedMapList.sendMapsToBack([selectedSheet?.mapId]);
+          selectedSheet = hitImages[0];
+          layer.renderer.warpedMapList.bringMapsToFront([selectedSheet.mapId]);
+          
+          showMapClickedPolygon(selectedSheet?.geoMask);
+
+          // Bereken bounding box en zoom in
+          const bounds = new maplibre.LngLatBounds();
+          selectedSheet?.geoMask.coordinates[0].forEach(coord => bounds.extend(coord));
+          map.fitBounds(bounds, { padding: 100 });
+          
+          console.log(`Topmost hit (Edition ${edition}):`, selectedSheet);
+
+          selectedSheet.georeferencedMap.resourceMask[0][0] = 0;
+          selectedSheet.georeferencedMap.resourceMask[0][1] = 10000;
+          selectedSheet.georeferencedMap.resourceMask[1][0] = 10000;
+          selectedSheet.georeferencedMap.resourceMask[1][1] = 10000;
+          selectedSheet.georeferencedMap.resourceMask[2][0] = 10000;
+          selectedSheet.georeferencedMap.resourceMask[2][1] = 0;
+          selectedSheet.georeferencedMap.resourceMask[3][0] = 0;
+          selectedSheet.georeferencedMap.resourceMask[3][1] = 0;
+          // const id = hitImages[0]?.mapId;
+          // if (id) layer.renderer.warpedMapList.zIndices.set(id, 10000000);
 
           return hitImages;
         }
@@ -188,52 +290,6 @@
       return null;
     });
   });
-
-  function showPolygonOnMap(map, polygonGeoJson) {
-    const sourceId = 'dynamic-polygon';
-
-    if (map.getSource(sourceId)) {
-      map.setLayoutProperty('dynamic-polygon-line-1', 'visibility', 'visible');
-      map.setLayoutProperty('dynamic-polygon-line-2', 'visibility', 'visible');
-      map.getSource(sourceId).setData({
-        type: 'Feature',
-        geometry: polygonGeoJson
-       });
-    } else {
-      map.addSource(sourceId, {
-        type: 'geojson',
-        data: {
-          type: 'Feature',
-          geometry: polygonGeoJson
-        }
-      });
-
-      map.addLayer({
-        id: sourceId + '-line-2',
-        type: 'line',
-        source: sourceId,
-        paint: {
-          'line-color': 'rgba(255,255,255,.5)',
-          'line-width': 4
-        }
-      });
-
-      map.addLayer({
-        id: sourceId + '-line-1',
-        type: 'line',
-        source: sourceId,
-        paint: {
-          'line-color': 'rgb(236,98,183)',
-          'line-width': 2
-        }
-      });
-    }
-
-    // Bereken bounding box en zoom in
-    const bounds = new maplibre.LngLatBounds();
-    polygonGeoJson.coordinates[0].forEach(coord => bounds.extend(coord));
-    map.fitBounds(bounds, { padding: 100 });
-  }
 </script>
 
 <style>
