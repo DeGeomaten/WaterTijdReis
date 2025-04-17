@@ -9,6 +9,7 @@
   import { mapHoveredInTimeline } from '../stores/mapHoveredInTimeline';
 	import { nonpassive } from 'svelte/legacy';
 
+  import { lerp, easeInCubic, easeOutCubic, easeOutBounce } from '../stores/animation';
 
   let canvas: HTMLCanvasElement;
   let ctx: CanvasRenderingContext2D | null = null;
@@ -16,9 +17,7 @@
 
   let timelineHorizontal = false;
   let timelineSize = 180;
-
-  let timelineWidth = 0;
-  let timelineHeight = 0;
+  let timelineLength = 0;
 
   const MIN_YEAR = 1800;
   const MAX_YEAR = new Date().getFullYear();
@@ -37,20 +36,16 @@
 
   let hoveredMap: Map | null = null;
 
-  function lerp(a: number, b: number, t: number): number {
-    return a + (b - a) * t;
-  }
-
   function yearToCanvas(year: number): number {
     const sy = Math.min(startYear, endYear);
     const ey = Math.max(startYear, endYear);
-    return ((year - sy) / (ey - sy)) * timelineHeight;
+    return ((year - sy) / (ey - sy)) * timelineLength;
   }
 
   function canvasToYear(y: number): number {
     const sy = Math.min(startYear, endYear);
     const ey = Math.max(startYear, endYear);
-    return sy + ((y / timelineHeight) * (ey - sy));
+    return sy + ((y / timelineLength) * (ey - sy));
   }
 
   onMount(() => {
@@ -64,15 +59,14 @@
 
   function resizeCanvas() {
     dpr = window.devicePixelRatio || 1;
-    timelineWidth = canvas.clientWidth;
-    timelineHeight = canvas.clientHeight;
+    timelineLength = timelineHorizontal ? innerWidth : innerHeight;
 
-    canvas.width = timelineWidth * dpr;
-    canvas.height = timelineHeight * dpr;
-    canvas.style.width = `${timelineWidth}px`;
-    canvas.style.height = `${timelineHeight}px`;
-
-    console.log(`canvas.width: ${canvas.width}, canvas.height: ${canvas.height}`);
+    canvas.width = timelineSize * dpr;
+    canvas.height = timelineLength * dpr;
+    if(timelineHorizontal) [canvas.width, canvas.height] = [canvas.height, canvas.width];
+    canvas.style.width = `${timelineSize}px`;
+    canvas.style.height = `${timelineLength}px`;
+    if(timelineHorizontal) [canvas.style.width, canvas.style.height] = [canvas.style.height, canvas.style.width];
 
     ctx?.scale(dpr, dpr);
   }
@@ -85,17 +79,12 @@
 
     startYear = Math.max(MIN_YEAR, Math.min(startYear, MAX_YEAR));
     endYear = Math.max(MIN_YEAR, Math.min(endYear, MAX_YEAR));
-
-    if (startYear > endYear) {
-      const temp = startYear;
-      startYear = endYear;
-      endYear = temp;
-    }
+    if (startYear > endYear) [startYear, endYear] = [endYear, startYear];
 
 
-    ctx.clearRect(0, 0, timelineWidth, timelineHeight);
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-    drawTimeline(ctx, startYear, endYear);
+    drawTimeline(ctx, startYear, endYear, timelineHorizontal);
 
     updateMaps(get(mapsInViewport));
 
@@ -124,23 +113,6 @@
     hoveredMap?.draw(ctx);
 
     requestAnimationFrame(draw);
-  }
-
-  function easeOutBounce(x: number): number {
-    const n1 = 7.5625;
-    const d1 = 2.75;
-    if (x < 1 / d1) return n1 * x * x;
-    else if (x < 2 / d1) return n1 * (x -= 1.5 / d1) * x + 0.75;
-    else if (x < 2.5 / d1) return n1 * (x -= 2.25 / d1) * x + 0.9375;
-    else return n1 * (x -= 2.625 / d1) * x + 0.984375;
-  }
-
-  function easeInCubic(x: number): number {
-    return x * x * x;
-  }
-
-  function easeOutCubic(x: number): number {
-    return 1 - Math.pow(1 - x, 3);
   }
 
   class Map {
@@ -183,14 +155,14 @@
 
         ctx.fillStyle = '#f55';
         ctx.fillRect(
-          timelineWidth - 30, mapTimeOffsetY + height_aspect / 2 - 10,
+          timelineSize - 30, mapTimeOffsetY + height_aspect / 2 - 10,
           40, 
           20
         );
 
         ctx.fillStyle = '#fff';
         ctx.font = '12px IvyPresto Display';
-        ctx.fillText(this.year, timelineWidth - 25, mapTimeOffsetY + height_aspect / 2 + 4);
+        ctx.fillText(this.year, timelineSize - 25, mapTimeOffsetY + height_aspect / 2 + 4);
       }
 
       ctx.save();
@@ -272,57 +244,75 @@
     }
   }
 
-  function drawTimeline(ctx: CanvasRenderingContext2D, startYear: number, endYear: number) {
-    const height = ctx.canvas.clientHeight;
-    const totalYears = endYear - startYear;
-    const pixelsPerYear = height / totalYears;
+  function drawTimeline(
+    ctx: CanvasRenderingContext2D,
+    startYear: number,
+    endYear: number,
+    timelineHorizontal: boolean
+  ) {
+    const pixelsPerYear = timelineLength / (endYear - startYear);
+    const labelStep = pixelsPerYear < 12 ? 25 : (pixelsPerYear < 30 ? 5 : 1);
 
-    const minLabelSpacing = 40; 
-    const idealYearStep = minLabelSpacing / pixelsPerYear;
-    const yearStep = Math.pow(10, Math.floor(Math.log10(idealYearStep)));
-
-    const firstLabel = Math.ceil(startYear / yearStep) * yearStep;
-
-    ctx.font = '12px IvyPresto Display';
     ctx.fillStyle = '#fff';
     ctx.strokeStyle = '#f55';
     ctx.lineWidth = 1;
 
-    ctx.fillText(`${Math.round(startYear)}`, timelineWidth - 45, 10 + 4);
-    ctx.fillText(`${Math.round(endYear)}`, timelineWidth - 45, height - 10 + 4);
+    const swap = (x,y) => 
+      timelineHorizontal ? [x, y] : [y, x];
 
-    for (let year = firstLabel; year <= endYear; year += yearStep) {
-      const yPos = yearToCanvas(year); 
-
+    for(let year = Math.ceil(startYear); year <= endYear; year += 1) {
+      const pos = yearToCanvas(year);
+      
+      ctx.font = '12px IvyPresto Display';
       ctx.beginPath();
-
-      if(year % 25 === 0) {
-        ctx.fillText(`${year}`, timelineWidth - 45, yPos + 4);
-        ctx.moveTo(timelineWidth - 20, yPos);
-      } else if (year % 5 === 0) {
-        if(pixelsPerYear > 10) ctx.fillText(`${year}`, timelineWidth - 45, yPos + 4);
-        ctx.moveTo(timelineWidth - 15, yPos);
+      ctx.lineWidth = 1;
+      if(year % 100 === 0) {
+        ctx.font = '600 14px IvyPresto Display';
+        ctx.fillText(`${Math.round(year)}`, ...swap(pos + 4, timelineSize - 45));
+        ctx.moveTo(...swap(pos, timelineSize - 12));
+        ctx.lineWidth = 2;
+      } else if(year % labelStep == 0) {
+        ctx.fillText(`${Math.round(year)}`, ...swap(pos + 4, timelineSize - 38));
+        ctx.moveTo(...swap(pos, timelineSize - 15));
       } else {
-        ctx.moveTo(timelineWidth - 10, yPos);
+        ctx.moveTo(...swap(pos, timelineSize - 6));
       }
-
-      ctx.lineTo(timelineWidth, yPos);
+      ctx.lineTo(...swap(pos, timelineSize));
       ctx.stroke();
     }
+
+    // for (let year = firstLabel; year <= endYear; year += yearStep) {
+    //   const pos = yearToCanvas(year); 
+
+    //   ctx.beginPath();
+
+    //   if(year % 25 === 0) {
+    //     ctx.fillText(`${year}`, timelineSize - 45, pos + 4);
+    //     ctx.moveTo(timelineSize - 20, pos);
+    //   } else if (year % 5 === 0) {
+    //     if(pixelsPerYear > 10) ctx.fillText(`${year}`, timelineSize - 45, pos + 4);
+    //     ctx.moveTo(timelineSize - 15, pos);
+    //   } else {
+    //     ctx.moveTo(timelineSize - 10, pos);
+    //   }
+
+    //   ctx.lineTo(timelineSize, pos);
+    //   ctx.stroke();
+    // }
   }
 
   function handlePointerDown(e: PointerEvent) {
     dragging = true;
-    dragStartY = e.clientY;
+    dragStartY = timelineHorizontal ? e.clientX : e.clientY;
   }
 
   function handlePointerMove(e: PointerEvent) {
     if (!dragging || dragStartY === null) return;
 
-    const dy = e.clientY - dragStartY;
-    dragStartY = e.clientY;
+    const dy = (timelineHorizontal ? e.clientX : e.clientY) - dragStartY;
+    dragStartY = timelineHorizontal ? e.clientX : e.clientY;
 
-    let yearDelta = (dy / timelineHeight) * (targetEndYear - targetStartYear);
+    let yearDelta = (dy / timelineLength) * (targetEndYear - targetStartYear);
     if(targetStartYear - yearDelta < MIN_YEAR) yearDelta = targetStartYear - MIN_YEAR;
     if(targetEndYear - yearDelta > MAX_YEAR) yearDelta = targetEndYear - MAX_YEAR;
 
@@ -352,7 +342,7 @@
     const zoomFactor = Math.min(Math.max(e.deltaY / 100, -0.2), 0.2);
     const zoomAmount = 1 + zoomFactor;
     const rect = canvas.getBoundingClientRect();
-    const cursorY = e.clientY - rect.top;
+    const cursorY = timelineHorizontal ? e.clientX - rect.left : e.clientY - rect.top;
     const cursorYear = canvasToYear(cursorY);
 
     let currentRange = targetEndYear - targetStartYear;
@@ -385,7 +375,6 @@
     position: fixed;
     bottom: 0;
     right: 0;
-    height: 100%;
     background: #222;
     z-index: 10;
     box-shadow: inset 10px 0 20px -10px rgba(0, 0, 0, 1);
