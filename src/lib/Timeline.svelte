@@ -74,11 +74,19 @@
     ctx?.scale(dpr, dpr);
   }
 
-  function draw() {
+  let lastTime = performance.now();
+
+  function draw(currentTime = performance.now()) {
     if(!ctx) return;
 
-    startYear = lerp(startYear, targetStartYear, 0.1);
-    endYear = lerp(endYear, targetEndYear, 0.1);
+    const deltaTime = (currentTime - lastTime) / 1000;
+    lastTime = currentTime;
+
+    const smoothSpeed = 5;
+    const lerpFactor = 1 - Math.exp(-smoothSpeed * deltaTime);
+
+    startYear = lerp(startYear, targetStartYear, lerpFactor);
+    endYear = lerp(endYear, targetEndYear, lerpFactor);
 
     startYear = Math.max(MIN_YEAR, Math.min(MAX_YEAR, startYear));
     endYear = Math.max(MIN_YEAR, Math.min(MAX_YEAR, endYear));
