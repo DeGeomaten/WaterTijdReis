@@ -2,15 +2,19 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import feather from 'feather-icons';
+    import { goto } from '$app/navigation';
+    import { page } from '$app/stores';
+    import AboutPage from '$lib/AboutPage.svelte';
   
     let searchQuery = ""; // Houdt de waarde van de zoekbalk bij
-  
+    let showAboutPage = false; // Houdt bij of de About-pagina zichtbaar is
+
     function share() {
       alert("Deelknop ingedrukt!");
     }
   
-    function about() {
-      alert("Over deze pagina!");
+    function toggleAboutPage() {
+      showAboutPage = !showAboutPage; // Toggle de zichtbaarheid van de About-pagina
     }
   
     onMount(() => {
@@ -150,7 +154,7 @@
     </div>
   
     <div class="buttons">
-      <button class="button" on:click={about}>
+      <button class="button" on:click={toggleAboutPage}>
         <i data-feather="map" class="icon size-4"></i> Over WaterTijdReis
       </button>
       <button class="button" on:click={share}>
@@ -158,3 +162,7 @@
       </button>
     </div>
   </div>
+
+  {#if showAboutPage}
+    <AboutPage on:close={toggleAboutPage} />
+  {/if}

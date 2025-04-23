@@ -80,6 +80,9 @@
     startYear = lerp(startYear, targetStartYear, 0.1);
     endYear = lerp(endYear, targetEndYear, 0.1);
 
+    startYear = Math.max(MIN_YEAR, Math.min(MAX_YEAR, startYear));
+    endYear = Math.max(MIN_YEAR, Math.min(MAX_YEAR, endYear));
+
     startYear = Math.max(MIN_YEAR, Math.min(startYear, MAX_YEAR));
     endYear = Math.max(MIN_YEAR, Math.min(endYear, MAX_YEAR));
     if (startYear > endYear) [startYear, endYear] = [endYear, startYear];
