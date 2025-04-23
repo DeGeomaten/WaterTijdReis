@@ -283,8 +283,7 @@
   function drawTimeline(
     ctx: CanvasRenderingContext2D,
     startYear: number,
-    endYear: number,
-    $timelineHorizontal: boolean
+    endYear: number
   ) {
     const pixelsPerYear = timelineLength / (endYear - startYear);
     const labelStep = pixelsPerYear < 12 ? 25 : (pixelsPerYear < 30 ? 5 : 1);
@@ -358,7 +357,7 @@
     mouseY = -1;
 
     if(Math.abs(targetEndYear - endYear) < .001) {
-      mapClickedInTimeline.set(hoveredMap.warpedMap); // TODO: dit kan beter
+      mapClickedInTimeline.set(hoveredMap.warpedMap); // TODO: this is just a temporary fix
     }
   }
 
@@ -381,7 +380,7 @@
     let currentRange = targetEndYear - targetStartYear;
     let newRange = currentRange * zoomAmount;
 
-    newRange = Math.max(newRange, 1); // Prevent zooming out too much
+    newRange = Math.max(newRange, 1);
 
     let newStart = cursorYear - ((cursorYear - targetStartYear) / currentRange) * newRange;
     let newEnd = cursorYear + ((targetEndYear - cursorYear) / currentRange) * newRange;

@@ -278,7 +278,7 @@
         source: 'map-hovered',
         paint: {
           'line-color': '#f55',
-          'line-width': 2
+          'line-width': 1
         },
         layout: {
           visibility: 'none'

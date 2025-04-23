@@ -6,19 +6,19 @@
     import { page } from '$app/stores';
     import AboutPage from '$lib/AboutPage.svelte';
   
-    let searchQuery = ""; // Houdt de waarde van de zoekbalk bij
-    let showAboutPage = false; // Houdt bij of de About-pagina zichtbaar is
+    let searchQuery = "";
+    let showAboutPage = false;
 
     function share() {
       alert("Deelknop ingedrukt!");
     }
   
     function toggleAboutPage() {
-      showAboutPage = !showAboutPage; // Toggle de zichtbaarheid van de About-pagina
+      showAboutPage = !showAboutPage;
     }
   
     onMount(() => {
-      feather.replace(); // Replace all <i> tags with Feather icons
+      feather.replace();
     });
   </script>
   
@@ -62,14 +62,14 @@
         font-weight: 300;
         color: #005;
         display: flex;
-        align-items: center; /* Vertically centers the items */
-        justify-content: center; /* Centers the items horizontally */
-        gap: 10px; /* Optional: Adds space between the logo image and text */
+        align-items: center;
+        justify-content: center; 
+        gap: 10px;
     }
 
     .logo img {
         max-height: 30px;
-        height: auto; /* Ensures the image maintains its aspect ratio */
+        height: auto; 
     }
   
     .buttons {
