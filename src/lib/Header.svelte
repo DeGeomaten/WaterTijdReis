@@ -10,7 +10,7 @@
     }
   
     function about() {
-      alert("Over deze pagina!");
+    
     }
   
     onMount(() => {
