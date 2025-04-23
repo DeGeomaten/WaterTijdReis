@@ -41,7 +41,7 @@
       padding: 8px;
       font-size: 16px;
       background: #ffffffff;
-      outline: 2px solid #00000022;
+      outline: 2px solid #4466ff22;
       border-radius: 4px;
       transition: width .2s;
     }
@@ -81,7 +81,7 @@
       /* border-bottom: 2px solid rgb(233, 233, 255); */
       border-radius: 4px;
       background: #ffffffff;
-      outline: 2px solid #00000022;
+      outline: 2px solid #4466ff22;
       border-radius: 4px;
       cursor: pointer;
       display: flex;
