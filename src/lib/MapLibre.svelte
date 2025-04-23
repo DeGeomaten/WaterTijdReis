@@ -10,24 +10,35 @@
   import { mapInstance } from '../stores/mapInstance';
   import { warpedMapLayers } from '../stores/warpedMapLayers';
   import { mapsInViewport } from '../stores/mapsInViewport'; // TODO 
-  import { mapHoveredInTimeline, mapHoveredInTimelineX, mapHoveredInTimelineY } from '../stores/mapHoveredInTimeline';
+  import { timelineHorizontal, timelineSize, mapHoveredInTimeline, mapHoveredInTimelineX, mapHoveredInTimelineY, mapClickedInTimeline } from '../stores/timeline';
 
   $: if(map) {
     showMapHoveredPolygon($mapHoveredInTimeline?.geoMask);
+    if($timelineHorizontal) mouseY = innerHeight - $timelineSize;
+    else mouseX = innerWidth - $timelineSize;
     const unprojected = map.unproject({ x: mouseX, y: mouseY });
     if($mapHoveredInTimeline) showLineToTimeline({
       type: 'LineString',
       coordinates: [
         [unprojected.lng, unprojected.lat],
         [
-          $mapHoveredInTimeline?.geoMask.coordinates[0][0][0],
-          $mapHoveredInTimeline?.geoMask.coordinates[0][0][1]
+          ($mapHoveredInTimeline?.geoMaskBbox[0] + $mapHoveredInTimeline?.geoMaskBbox[2]) / 2,
+          ($mapHoveredInTimeline?.geoMaskBbox[1] + $mapHoveredInTimeline?.geoMaskBbox[3]) / 2,
         ]
       ]
     }) 
     else {
       hideLineToTimeline();
     }
+  }
+
+  $: if(map && mapClickedInTimeline) {
+    showMapClickedPolygon($mapClickedInTimeline?.geoMask);
+
+    const bounds = new maplibre.LngLatBounds();
+    $mapClickedInTimeline?.geoMask.coordinates[0].forEach(coord => bounds.extend(coord));
+    if(Object.keys(bounds).length) map.fitBounds(bounds, { padding: 100 });
+    selectedSheet = $mapClickedInTimeline;
   }
 
   $: if (selectedSheet) {
@@ -57,27 +68,6 @@
       const annotationData = await response.json();
       // annotationData.items = annotationData.items.filter(i => i.id !== "96288818005190560268211324390159543196.jp2"); // TODO: remove
       await layer.addGeoreferenceAnnotation(annotationData);
-
-      // const polygonsById = layer.renderer?.warpedMapList.rtree.polygonsById;
-      // const masks = {
-      //   type: 'FeatureCollection',
-      //   features: Array.from(polygonsById.entries()).map(([id, geometry]) => ({
-      //     type: 'Feature',
-      //     geometry,
-      //     properties: { id }
-      //   }))
-      // };
-
-      // map.addSource('my-polygons-' + edition, { type: 'geojson', data: masks });
-      // map.addLayer({
-      //   id: 'my-polygons-outline-' + edition,
-      //   type: 'line',
-      //   source: 'my-polygons-' + edition,
-      //   paint: {
-      //     'line-color': '#000',
-      //     'line-width': 1
-      //   }
-      // });
     } catch (error) {
       console.error(`Error loading edition ${edition}:`, error);
     }
@@ -123,8 +113,11 @@
 
     if(key == 'Escape') {
       selectedSheet = null;
-      map.setLayoutProperty('dynamic-polygon-line-1', 'visibility', 'none');
-      map.setLayoutProperty('dynamic-polygon-line-2', 'visibility', 'none');
+      hideMapClickedPolygon();
+    }
+
+    if(key == 'KeyT') {
+      timelineHorizontal.set(!$timelineHorizontal);
     }
   }
 
@@ -321,9 +314,9 @@
         if (hitResults.length > 0) {
           const hitImages = hitResults.map(id => layer.renderer?.warpedMapList.warpedMapsById.get(id));
 
-          layer.renderer.warpedMapList.sendMapsToBack([selectedSheet?.mapId]);
+          // layer.renderer.warpedMapList.sendMapsToBack([selectedSheet?.mapId]);
           selectedSheet = hitImages[0];
-          layer.renderer.warpedMapList.bringMapsToFront([selectedSheet.mapId]);
+          // layer.renderer.warpedMapList.bringMapsToFront([selectedSheet.mapId]);
           
           showMapClickedPolygon(selectedSheet?.geoMask);
 
@@ -334,14 +327,14 @@
           
           console.log(`Topmost hit (Edition ${edition}):`, selectedSheet);
 
-          selectedSheet.georeferencedMap.resourceMask[0][0] = 0;
-          selectedSheet.georeferencedMap.resourceMask[0][1] = 10000;
-          selectedSheet.georeferencedMap.resourceMask[1][0] = 10000;
-          selectedSheet.georeferencedMap.resourceMask[1][1] = 10000;
-          selectedSheet.georeferencedMap.resourceMask[2][0] = 10000;
-          selectedSheet.georeferencedMap.resourceMask[2][1] = 0;
-          selectedSheet.georeferencedMap.resourceMask[3][0] = 0;
-          selectedSheet.georeferencedMap.resourceMask[3][1] = 0;
+          // selectedSheet.georeferencedMap.resourceMask[0][0] = 0;
+          // selectedSheet.georeferencedMap.resourceMask[0][1] = 10000;
+          // selectedSheet.georeferencedMap.resourceMask[1][0] = 10000;
+          // selectedSheet.georeferencedMap.resourceMask[1][1] = 10000;
+          // selectedSheet.georeferencedMap.resourceMask[2][0] = 10000;
+          // selectedSheet.georeferencedMap.resourceMask[2][1] = 0;
+          // selectedSheet.georeferencedMap.resourceMask[3][0] = 0;
+          // selectedSheet.georeferencedMap.resourceMask[3][1] = 0;
           // const id = hitImages[0]?.mapId;
           // if (id) layer.renderer.warpedMapList.zIndices.set(id, 10000000);
 
@@ -376,6 +369,19 @@
     padding: 15px;
     z-index: -1;
     transition: transform .3s;
+  }
+
+  .checkboxes h2 {
+    font-family: 'Inter';
+    font-weight: 400;
+    font-size: 11px;
+    color: #00000077;
+    opacity: 0;
+    transition: opacity .3s;
+  }
+
+  .checkboxes:hover h2 {
+    opacity: 1;
   }
 
   .checkboxes .description {
@@ -498,11 +504,12 @@
     text-align: center;
     background: rgba(0,0,0,.25);
     pointer-events: none;
+    z-index: 10000;
   }
 
   .fullscreen-sheet img {
-    width: 80vw;
-    margin: 150px auto;
+    width: 70vw;
+    margin: 10vw auto;
     box-shadow: 6px 6px 20px rgba(0,0,0,.5);
   }
 
@@ -521,6 +528,7 @@
 
 <div class="map" bind:this={mapContainer}></div>
 <div class="checkboxes">
+  <h2>LAGEN</h2>
   {#each [1, 2, 3, 4, 5] as edition}
     <label>
       <input type="checkbox" checked={selectedEditions[edition] || false} on:change={() => toggleEdition(edition)} />
@@ -548,7 +556,7 @@
   </button>
   <!-- <img src={selectedSheet.georeferencedMap.resource.id} alt=""> -->
   <div class="sheet-information">
-    <h2>Blad: {selectedSheet.imageId}</h2>
+    <h2>Blad: <span style="font-family: monospace">{selectedSheet.imageId}</span></h2>
     <br>
     <div class="sheet-buttons">
       <button><i data-feather="maximize-2" class="icon size-4"></i></button>
