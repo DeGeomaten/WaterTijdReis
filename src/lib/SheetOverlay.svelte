@@ -1,49 +1,71 @@
 <script>
   import { onMount } from 'svelte';
-  import maplibre from 'maplibre-gl';
-  import { WarpedMapLayer } from '@allmaps/maplibre'
+  import { mapsInViewport } from '../stores/mapsInViewport';
 
-  import { timelineSize, timelineHorizontal } from '../stores/timeline';
-
-  let map;
-  let mapContainer;
-
-  let warpedMapLayer = new WarpedMapLayer('sheetOverlay');
-
-  const id = "866b1365-0a97-455f-8c38-2cb221f9a1ca";
-
-  async function fetchAndAddLayer(edition, layer) {
-    const url = `https://raw.githubusercontent.com/bmmeijers/iiif-annotations/refs/heads/develop/series/waterstaatskaart/uu/editie_${edition}/latest.json`;
-    try {
-      const response = await fetch(url);
-      const annotationData = await response.json();
-      annotationData.items = annotationData.items.filter(i => i.id == id); // TODO: remove
-      await layer.addGeoreferenceAnnotation(annotationData);
-    } catch (error) {
-      console.error(`Error loading edition ${edition}:`, error);
-    }
+  function loadImage(url) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.src = url;
+      img.onload = () => resolve(img);
+      img.onerror = (err) => reject(err);
+    });
   }
 
+  let mapImage;
+  const imageURL = 'https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/97/10/27/9710272545801116399999795570251201778.jp2/0,0,8193,6639/4096,/0/default.jpg';
+  loadImage(imageURL)
+  .then(img => { mapImage = img; draw(); })
+  .catch((err) => {
+    console.error('Error loading image:', err);
+  });
+
+
+  const resourceMask = [241 / 2 - 38, 250 / 2 - 35, 4959 / 2 - 50, 6163 / 2 - 65];
   
+  function draw() {
+    requestAnimationFrame(draw);
+
+    const canvas = document.querySelector('.sheetOverlayCanvas');
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width = innerWidth;
+    const height = canvas.height = innerHeight;
+    const centerX = width / 2;
+    const centerY = height / 2;
+    
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+    ctx.fillRect(0,0,width, height);
+    
+    ctx.translate(centerX, centerY);
+    ctx.scale(.2,.2)
+    
+
+    ctx.drawImage(
+      mapImage, 
+      - mapImage.width / 2, 
+      - mapImage.height / 2, 
+      mapImage.width, mapImage.height
+    );
+    ctx.clearRect(
+      resourceMask[0] - mapImage.width / 2, 
+      resourceMask[1] - mapImage.height / 2, 
+      resourceMask[2], resourceMask[3]
+    );
+
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+  }
   
   onMount(() => {
-    map = new maplibre.Map({
-      container: mapContainer,
-      style: 'style.json',
-      center: [4.55,52.23],
-      zoom: 6,
-      maxPitch: 0,
-      preserveDrawingBuffer: true
-    });
 
-    map.on('load', () => {
-      fetchAndAddLayer(3, warpedMapLayer);
-      map.addLayer(warpedMapLayer);
-    });
   });
-</script>
 
-<div bind:this={mapContainer} class="sheetOverlayCanvas"></div>
+  let mouseX = 0;
+  let mouseY = 0;
+  function handleMouseMove(e) {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+  }
+</script>
 
 <style>
   .sheetOverlayCanvas {
@@ -53,7 +75,8 @@
     width: 100%;
     height: 100%;
     pointer-events: none;
-    z-index: 10000;
-    background: #00000022;
+    z-index: 10;
   }
 </style>
+
+<canvas class="sheetOverlayCanvas" on:mousemove={handleMouseMove}></canvas>
