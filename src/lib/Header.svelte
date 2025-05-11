@@ -32,6 +32,10 @@
       font-family: "ivypresto-display", serif;
       font-weight: 400;
       font-style: normal;
+      position: absolute;
+      top: 0;
+      width: 100%;
+      z-index: 2;
       /* border-bottom: 2px solid #ddd; */
     }
   

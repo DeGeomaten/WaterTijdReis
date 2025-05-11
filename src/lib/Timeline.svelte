@@ -1,415 +1,469 @@
-<script lang="ts">
-  import { onMount } from 'svelte';
-  import { get } from 'svelte/store';
-	import type { WarpedMap } from '@allmaps/render';
+<script>
+  import { mapStore } from '../stores/mapStore.svelte';
+  import { lerp, easeInCubic, easeOutCubic, easeOutBounce } from '../stores/animation.svelte';
+  import { timelineStore } from '../stores/timelineStore.svelte';
+	import { getIIIFMetadata } from '../stores/iiif-metadata.svelte';
 
-  import { mapsInViewport } from '../stores/mapsInViewport';
-  import { timelineHorizontal, timelineSize, mapHoveredInTimeline, mapHoveredInTimelineX, mapHoveredInTimelineY, mapClickedInTimeline } from '../stores/timeline';
+  let canvas;
+  let ctx;
 
-  import { lerp, easeInCubic, easeOutCubic, easeOutBounce } from '../stores/animation';
-
-  let canvas: HTMLCanvasElement;
-  let ctx: CanvasRenderingContext2D | null = null;
-  let dpr = 1;
-
-  let timelineLength = 0;
-
-  const MIN_YEAR = 1800;
-  const MAX_YEAR = new Date().getFullYear();
-
-  let mapThumbnailSize = $timelineSize - 60;
-  let mapThumbnailRotation = Math.PI / 25;
-
-  let startYear = 1800;
-  let endYear = 1950;
-  let targetStartYear = startYear;
-  let targetEndYear = endYear;
-
-  let dragging = false;
-  let dragStart: number | null = null;
-
-  let hoveredMap: Map | null = null;
+  let screenWidth = $state(0)
+  let screenHeight = $state(0);
+  let devicePixelRatio = $state(1);
+  let timelineLength = $derived(timelineStore.horizontal ? screenWidth : screenHeight);
+  let timelineSize = $derived(timelineStore.size);
 
   let highlightColor = '#f55';
 
-  function yearToCanvas(year: number): number {
-    const sy = Math.min(startYear, endYear);
-    const ey = Math.max(startYear, endYear);
-    return ((year - sy) / (ey - sy)) * timelineLength;
+  const LABEL_SPACING = 40;
+  let mapThumbnailPadding = $state(10);
+  let mapThumbnailSize = $derived(timelineStore.size - mapThumbnailPadding * 2 - LABEL_SPACING);
+  let maxMapThumbnailAspect = $state(1);
+  let mapThumbnailRotation = Math.PI / 32;
+  
+  const mapThumbnails = $state(new Map());
+
+
+  let timelineExpanded = false;
+
+  class MapThumbnailGroup {
+    constructor(mapThumbnails) {
+      this.mapThumbnails = mapThumbnails;
+    }
+
+    add(mapThumbnail) {
+      this.mapThumbnails.push(mapThumbnail);
+    }
+
+    get expandedSize() {
+      let totalSize = 0;
+      for(let mapThumbnail of this.mapThumbnails) {
+        totalSize += timelineStore.horizontal ? mapThumbnail.thumbnailWidth : mapThumbnail.thumbnailHeight;
+      }
+      return totalSize + mapThumbnailPadding * (this.mapThumbnails.length - 1)
+    }
+
+    get pileSize() {
+      let maxSize = 0;
+      for(let mapThumbnail of this.mapThumbnails) {
+        const size = timelineStore.horizontal ? mapThumbnail.thumbnailWidth : mapThumbnail.thumbnailHeight;
+        if(size > maxSize) maxSize = size;
+      }
+      return maxSize;
+    }
+
+    draw() {
+      const from = this.pileSize + mapThumbnailPadding * 2;
+      const to = this.expandedSize;
+      let expandProgress = (pixelsPerYear - from) / (to - from);
+      expandProgress = Math.max(Math.min(expandProgress, 1), 0);
+      
+      ctx.save();
+      ctx.translate(...flipXY(0, -this.expandedSize / 2 * expandProgress))
+      ctx.translate(...flipXY(0, this.mapThumbnails[0].thumbnailWidth / 2 * expandProgress));
+      for(let mapThumbnail of this.mapThumbnails) {
+        mapThumbnail.draw();
+        if(timelineStore.horizontal) ctx.translate((mapThumbnail.thumbnailWidth + mapThumbnailPadding) * expandProgress, 0)
+        else ctx.translate(0, (mapThumbnail.thumbnailHeight + mapThumbnailPadding) * expandProgress)
+      }
+      ctx.restore();
+
+      if(expandProgress > .1) return;
+      ctx.globalAlpha = 1 - expandProgress * 10;
+      ctx.fillStyle = highlightColor;
+      ctx.beginPath();
+      ctx.arc(
+        this.mapThumbnails[0].thumbnailX + this.mapThumbnails[0].thumbnailWidth / 2, 
+        this.mapThumbnails[0].thumbnailY + this.mapThumbnails[0].thumbnailHeight / 2,
+        10, 0, Math.PI * 2
+      );
+      ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.font = '10px Inter';
+      ctx.fillText(
+        '+' + (this.mapThumbnails.length - 1),
+        this.mapThumbnails[0].thumbnailX + this.mapThumbnails[0].thumbnailWidth / 2 - 6,
+        this.mapThumbnails[0].thumbnailY + this.mapThumbnails[0].thumbnailHeight / 2 + 4
+      );
+      ctx.globalAlpha = 1;
+    }
   }
 
-  function canvasToYear(y: number): number {
-    const sy = Math.min(startYear, endYear);
-    const ey = Math.max(startYear, endYear);
-    return sy + ((y / timelineLength) * (ey - sy));
-  }
+  class MapThumbnail {
+    constructor(warpedMap) {
+      this.warpedMap = warpedMap;
+      this.id = warpedMap.mapId;
 
-  $: if($timelineHorizontal) {
-    resizeCanvas();
-  } else {
-    // if(ctx) resizeCanvas();
-  }
+      this.imageOriginalWidth = warpedMap.georeferencedMap.resource.width;
+      this.imageOriginalHeight = warpedMap.georeferencedMap.resource.height;
+      this.imageAspect = this.imageOriginalWidth / this.imageOriginalHeight;
+      if(this.imageAspect > maxMapThumbnailAspect) 
+        maxMapThumbnailAspect = this.imageAspect;
+      
+      this.imageUrl = warpedMap.georeferencedMap.resource.id + '/full/128,/0/default.jpg';
+      this.imageLoaded = false;
+      this.image = new Image();
+      this.image.src = this.imageUrl;
+      this.image.onerror = err => console.error(`Failed to load image: ${this.imageUrl}`, err);
+      this.image.onload = () => this.imageLoaded = true;
 
-  onMount(() => {
-    ctx = canvas.getContext('2d');
+      this.rotation = mapThumbnailRotation * (Math.random() - 0.5);
 
-    resizeCanvas();
-    draw();
+      // find out which edition this map belongs
+      // TODO: this should be easier
+      this.edition = Object.keys(mapStore.metadata).find(edition => 
+        mapStore.metadata[edition].find(map => map.mapId == this.id)
+      )
+      this.year = mapStore.metadata[this.edition].find(map => map.mapId == this.id).hz;
 
-    window.addEventListener('resize', resizeCanvas);
-  });
+      this.animating = {}
+    }
 
-  function resizeCanvas() {
-    dpr = window.devicePixelRatio || 1;
-    timelineLength = $timelineHorizontal ? innerWidth : innerHeight;
-    mapThumbnailSize = $timelineSize - 60;
-
-    canvas.width = $timelineSize * dpr;
-    canvas.height = timelineLength * dpr;
-    if($timelineHorizontal) [canvas.width, canvas.height] = [canvas.height, canvas.width];
-    canvas.style.width = `${$timelineSize}px`;
-    canvas.style.height = `${timelineLength}px`;
-    if($timelineHorizontal) [canvas.style.width, canvas.style.height] = [canvas.style.height, canvas.style.width];
-
-    ctx?.scale(dpr, dpr);
-  }
-
-  let lastTime = performance.now();
-
-  function draw(currentTime = performance.now()) {
-    if(!ctx) return;
-
-    const deltaTime = (currentTime - lastTime) / 1000;
-    lastTime = currentTime;
-
-    const smoothSpeed = 5;
-    const lerpFactor = 1 - Math.exp(-smoothSpeed * deltaTime);
-
-    startYear = lerp(startYear, targetStartYear, lerpFactor);
-    endYear = lerp(endYear, targetEndYear, lerpFactor);
-
-    startYear = Math.max(MIN_YEAR, Math.min(MAX_YEAR, startYear));
-    endYear = Math.max(MIN_YEAR, Math.min(MAX_YEAR, endYear));
-
-    startYear = Math.max(MIN_YEAR, Math.min(startYear, MAX_YEAR));
-    endYear = Math.max(MIN_YEAR, Math.min(endYear, MAX_YEAR));
-    if (startYear > endYear) [startYear, endYear] = [endYear, startYear];
-
-
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-
-    drawTimeline(ctx, startYear, endYear, $timelineHorizontal);
-
-    updateMaps(get(mapsInViewport));
-
-    hoveredMap = null;
-
-    for (let i = maps.length - 1; i >= 0; i--) {
-      const map = maps[i];
-      map.hovered = false;
-      if(!map.inViewPort) continue;
-
-      if (!hoveredMap && map.contains(mouseX / dpr, mouseY / dpr)) {
-        hoveredMap = map;
+    animate(property, from, to, duration = 200) {
+      this.animating[property] = {
+        targetValue: to,
+        duration,
+        startTime: performance.now(),
+        getValue: () => {
+          const elapsed = performance.now() - this.animating[property].startTime;
+          const t = Math.min(elapsed / this.animating[property].duration, 1);
+          return lerp(this[property] || 0, this.animating[property].targetValue, easeOutCubic(t));
+        }
       }
     }
 
-    if(hoveredMap) {
-      hoveredMap.hovered = true;
-      ctx.canvas.style.cursor = 'pointer';
-      mapHoveredInTimeline.set(hoveredMap.warpedMap);
-      mapHoveredInTimelineX.set(hoveredMap.thumbnailCenterX);
-      mapHoveredInTimelineY.set(hoveredMap.thumbnailCenterY);
-    } else {
-      ctx.canvas.style.cursor = 'grab';
-      mapHoveredInTimeline.set(null);
-    }
-
-    maps.forEach((map) => map.draw(ctx));
-    hoveredMap?.draw(ctx);
-
-    requestAnimationFrame(draw);
-  }
-
-  class Map {
-    constructor(map: WarpedMap) {
-      this.mapId = map.mapId;
-      this.warpedMap = map;
-      this.year = map.year || Math.round(Math.random() * 50) + 1850;
-      this.inViewPort = true;
-      this.inViewPortSince = new Date();
-
-      this.mapImageWidth = map.georeferencedMap.resource.width;
-      this.mapImageHeight = map.georeferencedMap.resource.height;
-      this.rotation = (Math.random() - .5) * mapThumbnailRotation;
-      this.cachedTilesForTexture = map.cachedTilesForTexture;
-    }
-
     get thumbnailX() {
-      const mapTimeOffset = yearToCanvas(this.year);
-      return $timelineHorizontal ? mapTimeOffset - this.thumbnailWidth / 2 : 10;
+      const x = yearToCanvas(this.year);
+      return timelineStore.horizontal ? x - this.thumbnailWidth / 2 : mapThumbnailPadding;
     }
     get thumbnailY() {
-      const mapTimeOffset = yearToCanvas(this.year);
-      return $timelineHorizontal ? 10 : mapTimeOffset - this.thumbnailHeight / 2;
+      const y = yearToCanvas(this.year);
+      return timelineStore.horizontal ? mapThumbnailPadding : y - this.thumbnailHeight / 2;
     }
-
     get thumbnailWidth() {
-      return $timelineHorizontal ? mapThumbnailSize * (this.mapImageWidth / this.mapImageHeight) : mapThumbnailSize;
+      return timelineStore.horizontal ? mapThumbnailSize * this.imageAspect : mapThumbnailSize;
     }
     get thumbnailHeight() {
-      return $timelineHorizontal ? mapThumbnailSize : mapThumbnailSize * (this.mapImageHeight / this.mapImageWidth);
+      return timelineStore.horizontal ? mapThumbnailSize : mapThumbnailSize / this.imageAspect;
     }
-
     get thumbnailCenterX() {
       return this.thumbnailX + this.thumbnailWidth / 2;
     }
     get thumbnailCenterY() {
       return this.thumbnailY + this.thumbnailHeight / 2;
     }
-
-    contains(x: number, y: number): boolean {
-      const dx = x - this.thumbnailCenterX;
-      const dy = y - this.thumbnailCenterY;
-      const cos = Math.cos(-this.rotation);
-      const sin = Math.sin(-this.rotation);
-      const localX = dx * cos - dy * sin + mapThumbnailSize / 2;
-      const localY = dx * sin + dy * cos + mapThumbnailSize / 2;
-
-      return localX >= 0 && localX <= this.thumbnailWidth &&
-            localY >= 0 && localY <= this.thumbnailHeight;
+    get thumbnailBB() {
+      return [ this.thumbnailX, this.thumbnailY, this.thumbnailWidth, this.thumbnailHeight ]
     }
 
-    draw(ctx: CanvasRenderingContext2D) {
-      const visibleTime = new Date() - this.inViewPortSince;
-      if(!this.inViewPort && visibleTime > 200) return;
-      
-      const mapTimeOffset = yearToCanvas(this.year);
-      const scaleFactor = this.mapImageWidth / this.thumbnailWidth;
-
-      if(this.hovered) {
-        ctx.strokeStyle = highlightColor;
-        ctx.strokeRect(
-          this.thumbnailX - 1, this.thumbnailY - 1,
-          this.thumbnailWidth + 2, this.thumbnailHeight + 2
-        );
-
-        ctx.beginPath();
-        ctx.moveTo(...flipXY(
-          this.thumbnailX + this.thumbnailWidth, this.thumbnailCenterY,
-          this.thumbnailCenterX, this.thumbnailY + this.thumbnailHeight
-        ));
-        ctx.lineTo(...flipXY(
-          $timelineSize, this.thumbnailCenterY,
-          this.thumbnailCenterX, $timelineSize
-        ));
-        // ctx.moveTo(this.thumbnailX + this.thumbnailWidth, this.thumbnailCenterY)
-        // ctx.lineTo($timelineSize, this.thumbnailCenterY);
-        ctx.lineWidth = 2;
-        ctx.stroke();
-
-        ctx.font = '12px IvyPresto Display';
-        ctx.fillStyle = highlightColor;
-        ctx.fillRect(
-          ...flipXY(
-            $timelineSize - 30, this.thumbnailCenterY - 7,
-            this.thumbnailCenterX - 15, $timelineSize - 15,
-          ),
-          30, 15
-        );
-
-        ctx.fillStyle = '#000';
-        ctx.fillText(
-          this.year, 
-          ...flipXY(
-            $timelineSize - ctx.measureText(this.year).width - 3, this.thumbnailCenterY + 5,
-            this.thumbnailCenterX - ctx.measureText(this.year).width / 2, $timelineSize - 3,
-          )
-        );
+    set hovering(val) {
+      if(this._hovering != val && val) {
+        this.animate('rotation', this.rotation, 0, 200);
+        this.animate('highlight', 0, 1, 200);
+      } else if(this._hovering != val) {
+        this.animate('rotation', 0, this.rotation, 200);
+        this.animate('highlight', 1, 0, 200);
       }
+
+      this._hovering = val;
+    }
+    get hovering() { return this._hovering }
+
+    draw() {
+      if(!ctx) return;
 
       ctx.save();
       ctx.translate(this.thumbnailCenterX, this.thumbnailCenterY);
-      ctx.rotate(this.hovered ? 0 : this.rotation);
-      if (visibleTime <= 200) {
-        const scale = this.inViewPort
-          ? easeOutBounce(visibleTime / 200) 
-          : easeOutCubic(1 - visibleTime / 200); 
-
-        ctx.scale(scale, scale);
-      }
+      ctx.rotate(this.animating.rotation ? this.animating.rotation.getValue() : this.rotation);
       ctx.translate(-this.thumbnailCenterX, -this.thumbnailCenterY);
 
-      for(const tile of this.cachedTilesForTexture) {
-        const x = tile.imageRequest.region.x / this.mapImageWidth * this.thumbnailWidth;
-        const y = tile.imageRequest.region.y / this.mapImageHeight * this.thumbnailHeight;
-        const width = tile.imageRequest.region.width / this.mapImageWidth * this.thumbnailWidth;
-        const height = tile.imageRequest.region.height / this.mapImageHeight * this.thumbnailHeight;
+      ctx.fillStyle = '#ffffff11';
+      ctx.fillRect(...this.thumbnailBB);
 
-        ctx.drawImage(
-          tile.data, 
-          0, 0, tile.imageRequest.size.width, tile.imageRequest.size.height, 
-          this.thumbnailX + x, this.thumbnailY + y,
-          width, height
-        )
+      if(this.imageLoaded) ctx.drawImage(this.image, ...this.thumbnailBB);
+
+      if(this.hovering) {
+        ctx.save();
+        if(this.animating['highlight']) ctx.globalAlpha = this.animating['highlight'].getValue();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1;
+        ctx.shadowColor = "#fff";
+        ctx.shadowBlur = 6;
+        ctx.strokeRect(...this.thumbnailBB);
+        ctx.restore();
       }
+
       ctx.restore();
     }
   }
 
-  let maps = [];
+  $effect(() => {
+    if(!ctx) {
+      ctx = canvas.getContext('2d');
+      draw();
 
-  function updateMaps(mapsInViewport) {
-    const idsInViewport = new Set(mapsInViewport.map(m => m.mapId));
-
-    for(const map of maps) {
-      if(mapsInViewport.find(m => m.mapId === map.mapId)?.cachedTilesForTexture.length) map.cachedTilesForTexture = mapsInViewport.find(m => m.mapId === map.mapId)?.cachedTilesForTexture || [];
-      if(!idsInViewport.has(map.mapId)) {
-        if(map.inViewPort) map.inViewPortSince = new Date();
-        map.inViewPort = false;
-      } else if(!map.inViewPort) {
-        map.inViewPortSince = new Date();
-        map.inViewPort = true;
-      }
+      window.addEventListener('resize', resizeCanvas);
+      window.addEventListener('keydown', e => {
+        if(e.key === 't') timelineStore.horizontal = !timelineStore.horizontal;
+        if(e.key === 's') timelineExpanded = !timelineExpanded;
+      });
     }
 
-    for(const m of mapsInViewport) {
-      if(!maps.some(existing => existing.mapId === m.mapId)) {
-        maps.push(new Map(m));
-      }
+    resizeCanvas();
+
+    if(!timelineStore.loaded && mapStore.loaded) {
+      setTimeout(initTimeline, 500);
     }
+  });
+
+  function getExpandedYearWidth(year) {
+    const mapThumbnail = mapThumbnails.get(year);
+    const pad = mapThumbnailPadding * 2;
+    if(mapThumbnail instanceof MapThumbnail) 
+      return timelineStore.horizontal ? 
+        mapThumbnail.thumbnailWidth + pad : 
+        mapThumbnail.thumbnailHeight + pad;
+    if(mapThumbnail instanceof MapThumbnailGroup) 
+      return mapThumbnail.expandedSize + pad;
+    return mapThumbnailSize + pad;
   }
 
-  function flipXY(x: number, y: number, x2?: number, y2?: number): [number, number] {
-    if ($timelineHorizontal) {
+  function yearToCanvas(year) {
+    if(!timelineExpanded) return ((year - startYear) / (endYear - startYear)) * timelineLength;
+
+    const from = Math.min(year, startYear);
+    const to = Math.max(year, startYear);
+    let result = 0;
+
+    for(let y = Math.floor(from); y < Math.ceil(to); ++y) {
+      const fraction = (Math.min(to, y + 1) - Math.max(from, y));
+      result += getExpandedYearWidth(y) * fraction;
+    }
+
+    return result * (year >= startYear ? 1 : -1);
+  }
+
+  function canvasToYear(y) {
+    const sy = Math.min(startYear, endYear);
+    const ey = Math.max(startYear, endYear);
+    return sy + ((y / timelineLength) * (ey - sy));
+  }
+
+  function flipXY(x, y, x2, y2) {
+    if(timelineStore.horizontal) {
       return x2 !== undefined && y2 !== undefined ? [x2, y2] : [y, x];
-    } else {
-      return [x,y];
-    }
+    } else return [x,y];
   }
 
-  function drawTimeline(
-    ctx: CanvasRenderingContext2D,
-    startYear: number,
-    endYear: number
-  ) {
-    const pixelsPerYear = timelineLength / (endYear - startYear);
-    const labelStep = pixelsPerYear < 12 ? 25 : (pixelsPerYear < 30 ? 5 : 1);
 
-    ctx.fillStyle = '#fff';
-    ctx.strokeStyle = highlightColor;
-    ctx.lineWidth = 1;
+  const MIN_YEAR = 1800;
+  const MAX_YEAR = new Date().getFullYear();
+
+  const MAX_RANGE = 1;
+
+  let startYear = $state(MIN_YEAR);
+  let endYear = $state(MAX_YEAR - 100);
+  let pixelsPerYear = $derived(timelineLength / (endYear - startYear));
+
+  function panTimelineYears(deltaYears) {
+    const maxDelta = MAX_YEAR - endYear;
+    const minDelta = MIN_YEAR - startYear;
+    deltaYears = Math.max(Math.min(deltaYears, maxDelta), minDelta);
+    startYear += deltaYears;
+    endYear += deltaYears;
+  }
+
+  function panTimelinePixels(deltaPixels) {
+    const deltaYears = (deltaPixels / timelineLength) * (endYear - startYear);
+    panTimelineYears(deltaYears);
+  }
+
+  function zoomTimeline(factor, center = (startYear + endYear) / 2) {
+    const currentRange = endYear - startYear;
+    let newRange = currentRange * factor;
+    newRange = Math.max(newRange, MAX_RANGE);
+
+    let newStartYear = center - ((center - startYear) / currentRange) * newRange;
+    let newEndYear = center + ((endYear - center) / currentRange) * newRange;
+    startYear = Math.max(MIN_YEAR, newStartYear);
+    endYear = Math.min(MAX_YEAR, newEndYear);
+  }
+
+  function resizeCanvas() {
+    if(!ctx) return;
+    const horizontal = timelineStore.horizontal;
+    canvas.width = (horizontal ? timelineLength : timelineSize) * devicePixelRatio;
+    canvas.height = (horizontal ? timelineSize : timelineLength) * devicePixelRatio;
+    canvas.style.width = `${(horizontal ? timelineLength : timelineSize)}px`;
+    canvas.style.height = `${(horizontal ? timelineSize : timelineLength)}px`;
+    ctx.scale(devicePixelRatio, devicePixelRatio);
+  }
+
+  function initTimeline() {
+    timelineStore.loaded = true;
+
+    for(const edition of ['editie_2', 'editie_3']) {
+      mapStore.warpedMapLayers[edition].renderer.warpedMapList.warpedMapsById.forEach(warpedMap => {
+        const mapThumbnail = new MapThumbnail(warpedMap);
+        if(!mapThumbnails.has(mapThumbnail.year)) 
+          mapThumbnails.set(mapThumbnail.year, mapThumbnail);
+        else if(mapThumbnails.get(mapThumbnail.year) instanceof MapThumbnailGroup) 
+          mapThumbnails.get(mapThumbnail.year).add(mapThumbnail);
+        else
+          mapThumbnails.set(mapThumbnail.year, new MapThumbnailGroup([
+            mapThumbnails.get(mapThumbnail.year), mapThumbnail
+          ]))
+      })
+    }
+
+  }
+
+  function drawTimeline(ctx, startYear, endYear) {
+    const labelSteps = [100, 25, 5, 1];
+    const labelStepZoomThresholds = [0, 1, 12, 30];
+    const labelStepZoomFadeIn = [0, 1, 6, 20];
 
     for(let year = Math.ceil(startYear); year <= endYear; year += 1) {
-      const pos = yearToCanvas(year);
-      
+      let pos = yearToCanvas(year);
+      if(timelineExpanded) pos += getExpandedYearWidth(year) / 2;
+
       ctx.font = '12px IvyPresto Display';
+      ctx.fillStyle = '#fff';
+      ctx.strokeStyle = highlightColor;
       ctx.beginPath();
       ctx.lineWidth = 1;
-      if(year % 100 === 0) {
-        ctx.font = '600 14px IvyPresto Display';
+      ctx.moveTo(...flipXY(timelineSize - 6, pos));
+
+      for(let i = 0; i < labelSteps.length; i++) {
+        if(pixelsPerYear < labelStepZoomFadeIn[i] || year % labelSteps[i] != 0) continue;
+        else if(pixelsPerYear < labelStepZoomThresholds[i]) {
+          const fadeIn = (pixelsPerYear - labelStepZoomFadeIn[i]) / (labelStepZoomThresholds[i] - labelStepZoomFadeIn[i]);
+          ctx.globalAlpha = easeInCubic(fadeIn);
+        }
+
+        ctx.moveTo(...flipXY(timelineSize - 12, pos));
         const textWidth = ctx.measureText(`${Math.round(year)}`).width;
         ctx.fillText(`${Math.round(year)}`, ...flipXY(
-            $timelineSize - textWidth - 15, pos + 4, 
-            pos - textWidth / 2, $timelineSize - 20,
+          timelineSize - 38, pos + 4,
+          pos - textWidth / 2, timelineSize - 20
         ));
-        ctx.moveTo(...flipXY($timelineSize - 12, pos));
-        ctx.lineWidth = 2;
-      } else if(year % labelStep == 0) {
-        const textWidth = ctx.measureText(`${Math.round(year)}`).width;
-        ctx.fillText(`${Math.round(year)}`, ...flipXY(
-          $timelineSize - 38, pos + 4,
-          pos - textWidth / 2, $timelineSize - 20
-        ));
-        ctx.moveTo(...flipXY($timelineSize - 15, pos));
-      } else {
-        ctx.moveTo(...flipXY($timelineSize - 6, pos));
+
+        if(timelineExpanded && year % 2 == 0) { // TODO: FLIP
+          ctx.fillRect(
+            yearToCanvas(year), 0,
+            yearToCanvas(year + 1) - yearToCanvas(year), 100
+          )
+        }
+
+        ctx.globalAlpha = 1;
       }
-      ctx.lineTo(...flipXY($timelineSize, pos));
+
+      ctx.lineTo(...flipXY(timelineSize, pos));
       ctx.stroke();
     }
   }
 
-  function handlePointerDown(e: PointerEvent) {
-    dragging = true;
-    dragStart = $timelineHorizontal ? e.clientX : e.clientY;
+  function draw() {
+    
+    if(timelinePanning) {
+      panTimelinePixels(timelinePanning);
+      timelinePanning *= .95;
+    }
+    
+    if(timelineZooming) {
+      zoomTimeline(timelineZooming, timelineZoomingCenter);
+      timelineZooming = (1 - timelineZooming) * .1 + 1;
+    }
+    
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawTimeline(ctx, startYear, endYear);
+
+    for(let mapThumbnail of mapThumbnails.values()) {
+      if(mapThumbnail) {
+        mapThumbnail.draw();
+      }
+    }
+
+    requestAnimationFrame(draw);
   }
 
-  function handlePointerMove(e: PointerEvent) {
-    if (!dragging || dragStart === null) return;
+  function mapThumbnailAt(x,y) {
+    if(timelineStore.horizontal) y -= screenHeight - timelineSize;
+    else x -= screenWidth - timelineSize;
 
-    const dy = ($timelineHorizontal ? e.clientX : e.clientY) - dragStart;
-    dragStart = $timelineHorizontal ? e.clientX : e.clientY;
+    for(let mapThumbnail of Array.from(mapThumbnails.values()).toReversed()) {
+      const [x2, y2] = [
+        mapThumbnail.thumbnailX + mapThumbnail.thumbnailWidth, 
+        mapThumbnail.thumbnailY + mapThumbnail.thumbnailHeight
+      ];
 
-    let yearDelta = (dy / timelineLength) * (targetEndYear - targetStartYear);
-    if(targetStartYear - yearDelta < MIN_YEAR) yearDelta = targetStartYear - MIN_YEAR;
-    if(targetEndYear - yearDelta > MAX_YEAR) yearDelta = targetEndYear - MAX_YEAR;
-
-    targetStartYear = targetStartYear - yearDelta;
-    targetEndYear = targetEndYear - yearDelta;
-  }
-
-  let mouseX = 0;
-  let mouseY = 0;
-
-  function handleMouseMove(e: MouseEvent) {
-    const rect = canvas.getBoundingClientRect();
-    mouseX = (e.clientX - rect.left) * dpr;
-    mouseY = (e.clientY - rect.top) * dpr;
-  }
-
-  function handlePointerUp() {
-    dragging = false;
-    dragStart = null;
-    mouseX = -1; 
-    mouseY = -1;
-
-    if(Math.abs(targetEndYear - endYear) < .001) {
-      mapClickedInTimeline.set(hoveredMap.warpedMap); // TODO: this is just a temporary fix
+      if(x < x2 && y < y2 && x > mapThumbnail.thumbnailX && y > mapThumbnail.thumbnailY) {
+        return mapThumbnail;
+      }
     }
   }
 
-  function handlePointerLeave() { // TODO: merge these
-    dragging = false;
-    dragStart = null;
-    mouseX = -1; 
-    mouseY = -1;
+  let lastHoveredMap = null;
+  let hoverTimeout = null;
+
+  function setHoveredMapThumbnail(mapThumbnail) {
+    mapThumbnail.hovering = true;
+    timelineStore.hoveredMap = mapThumbnail.warpedMap;
+    timelineStore.hoverX = mapThumbnail.thumbnailCenterX;
+    timelineStore.hoverY = mapThumbnail.thumbnailCenterY;
+    if(timelineStore.horizontal) timelineStore.hoverY += screenHeight - timelineSize;
+    else timelineStore.hoverX += screenWidth - timelineSize;
   }
 
-  function handleWheel(e: WheelEvent) {
+  function resetHoveredMapThumbnail() {
+    mapThumbnails.forEach(m => m.hovering = false);
+    timelineStore.hoveredMap = null;
+    clearTimeout(hoverTimeout);
+  }
+
+  let timelinePanning = 0;
+  function onpointermove(e) {
+    const mapThumbnail = mapThumbnailAt(e.clientX, e.clientY);
+    if(mapThumbnail != lastHoveredMap) {
+      resetHoveredMapThumbnail();
+      if(mapThumbnail) hoverTimeout = setTimeout(() => setHoveredMapThumbnail(mapThumbnail), 500);
+    }
+    lastHoveredMap = mapThumbnail;
+
+    if(e.buttons == 1) {
+      timelinePanning = timelineStore.horizontal ? -e.movementX : -e.movementY;
+    }
+  }
+
+  function onmouseout() {
+    mapThumbnails.forEach(m => m.hovering = false);
+    lastHoveredMap = null;
+    clearTimeout(hoverTimeout);
+  }
+
+  let timelineZooming = 0;
+  let timelineZoomingCenter = 0;
+  function onwheel(e) {
+    const zoomFactor = 1 + Math.min(Math.max(e.deltaY / 100, -0.1), 0.1);
+    timelineZooming = zoomFactor;
+    timelineZoomingCenter = canvasToYear(timelineStore.horizontal ? e.clientX : e.clientY);
     e.preventDefault();
-
-    const zoomFactor = Math.min(Math.max(e.deltaY / 100, -0.2), 0.2);
-    const zoomAmount = 1 + zoomFactor;
-    const rect = canvas.getBoundingClientRect();
-    const cursorY = $timelineHorizontal ? e.clientX - rect.left : e.clientY - rect.top;
-    const cursorYear = canvasToYear(cursorY);
-
-    let currentRange = targetEndYear - targetStartYear;
-    let newRange = currentRange * zoomAmount;
-
-    newRange = Math.max(newRange, 1);
-
-    let newStart = cursorYear - ((cursorYear - targetStartYear) / currentRange) * newRange;
-    let newEnd = cursorYear + ((targetEndYear - cursorYear) / currentRange) * newRange;
-
-    targetStartYear = Math.max(newStart, MIN_YEAR);
-    targetEndYear = Math.min(newEnd, MAX_YEAR);
   }
 
-  function handleResize(newSize: number) {
-    timelineSize.set(newSize);
-    if($timelineHorizontal) document.querySelector('.resizer').style.bottom = `${$timelineSize}px`;
-    else document.querySelector('.resizer').style.right = `${$timelineSize}px`;
+
+  function handleResize(newSize) {
+    timelineStore.size = newSize;
+    if(timelineStore.horizontal) document.querySelector('.resizer').style.bottom = `${timelineSize}px`;
+    else document.querySelector('.resizer').style.right = `${timelineSize}px`;
     resizeCanvas();
   }
 
-  function startResize(event: MouseEvent) {
-    const start = $timelineHorizontal ? event.clientY : event.clientX;
-    const startSize = $timelineSize;
+  function startResize(event) {
+    const start = timelineStore.horizontal ? event.clientY : event.clientX;
+    const startSize = timelineSize;
 
-    function onMove(e: MouseEvent) {
-      const delta = ($timelineHorizontal ? e.clientY : e.clientX) - start;
+    function onMove(e) {
+      const delta = (timelineStore.horizontal ? e.clientY : e.clientX) - start;
       handleResize(Math.min(Math.max(100, startSize - delta), 400));
     }
 
@@ -423,21 +477,22 @@
   }
 </script>
 
+<svelte:window bind:innerWidth={screenWidth} bind:innerHeight={screenHeight} bind:devicePixelRatio={devicePixelRatio}/>
 
 <canvas
   bind:this={canvas}
-  on:pointerdown={handlePointerDown}
-  on:pointermove={(e) => { handlePointerMove(e); handleMouseMove(e); }}
-  on:pointerup={handlePointerUp}
-  on:pointerleave={handlePointerLeave}
-  on:wheel={handleWheel}
+  {onpointerdown}
+  {onpointermove}
+  {onpointerup}
+  {onmouseout}
+  {onwheel}
   class="timeline-canvas"
-  style="{$timelineHorizontal ? 'height: ' : 'width: '}{$timelineSize}px; {$timelineHorizontal ? 'width: 100vw;' : 'height: 100vh;'}"
+  style="{timelineStore.horizontal ? 'height: ' : 'width: '}{timelineSize}px; {timelineStore.horizontal ? 'width: 100vw;' : 'height: 100vh;'}"
 ></canvas>
 
 <div
-  class="resizer {$timelineHorizontal ? 'horizontal' : 'vertical'}"
-  on:mousedown={startResize}
+  class="resizer {timelineStore.horizontal ? 'horizontal' : 'vertical'}"
+  onmousedown={startResize}
 />
 
 <style>

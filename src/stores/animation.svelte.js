@@ -1,8 +1,8 @@
-export function lerp(a: number, b: number, t: number): number {
+export function lerp(a, b, t) {
     return a + (b - a) * t;
 }
 
-export function easeOutBounce(x: number): number {
+export function easeOutBounce(x) {
     const n1 = 7.5625;
     const d1 = 2.75;
     if (x < 1 / d1) return n1 * x * x;
@@ -11,10 +11,10 @@ export function easeOutBounce(x: number): number {
     else return n1 * (x -= 2.625 / d1) * x + 0.984375;
 }
 
-export function easeInCubic(x: number): number {
+export function easeInCubic(x) {
     return x * x * x;
 }
 
-export function easeOutCubic(x: number): number {
+export function easeOutCubic(x) {
     return 1 - Math.pow(1 - x, 3);
 }
