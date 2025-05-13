@@ -24,7 +24,35 @@
   const mapThumbnails = $state(new Map());
 
 
+  const MIN_YEAR = 1800;
+  const MAX_YEAR = new Date().getFullYear();
+
+  const MAX_RANGE = 1;
+
+  let startYear = $state(MIN_YEAR + 50);
+  let endYear = $state(MAX_YEAR);
+  let pixelsPerYear = $derived(timelineLength / (endYear - startYear));
+
   let timelineExpanded = false;
+
+  $effect(() => {
+    if(!ctx) {
+      ctx = canvas.getContext('2d');
+      draw();
+
+      window.addEventListener('resize', resizeCanvas);
+      window.addEventListener('keydown', e => {
+        if(e.key === 't') timelineStore.horizontal = !timelineStore.horizontal;
+        if(e.key === 's') timelineExpanded = !timelineExpanded;
+      });
+    }
+
+    resizeCanvas();
+
+    if(!timelineStore.loaded && mapStore.loaded) {
+      setTimeout(initTimeline, 500);
+    }
+  });
 
   class MapThumbnailGroup {
     constructor(mapThumbnails) {
@@ -197,25 +225,6 @@
     }
   }
 
-  $effect(() => {
-    if(!ctx) {
-      ctx = canvas.getContext('2d');
-      draw();
-
-      window.addEventListener('resize', resizeCanvas);
-      window.addEventListener('keydown', e => {
-        if(e.key === 't') timelineStore.horizontal = !timelineStore.horizontal;
-        if(e.key === 's') timelineExpanded = !timelineExpanded;
-      });
-    }
-
-    resizeCanvas();
-
-    if(!timelineStore.loaded && mapStore.loaded) {
-      setTimeout(initTimeline, 500);
-    }
-  });
-
   function getExpandedYearWidth(year) {
     const mapThumbnail = mapThumbnails.get(year);
     const pad = mapThumbnailPadding * 2;
@@ -254,16 +263,6 @@
       return x2 !== undefined && y2 !== undefined ? [x2, y2] : [y, x];
     } else return [x,y];
   }
-
-
-  const MIN_YEAR = 1800;
-  const MAX_YEAR = new Date().getFullYear();
-
-  const MAX_RANGE = 1;
-
-  let startYear = $state(MIN_YEAR);
-  let endYear = $state(MAX_YEAR - 100);
-  let pixelsPerYear = $derived(timelineLength / (endYear - startYear));
 
   function panTimelineYears(deltaYears) {
     const maxDelta = MAX_YEAR - endYear;
@@ -320,14 +319,14 @@
 
   function drawTimeline(ctx, startYear, endYear) {
     const labelSteps = [100, 25, 5, 1];
-    const labelStepZoomThresholds = [0, 1, 12, 30];
-    const labelStepZoomFadeIn = [0, 1, 6, 20];
+    const labelStepZoomThresholds = [0, 1, 12, 50];
+    const labelStepZoomFadeIn = [0, 1, 6, 30];
 
     for(let year = Math.ceil(startYear); year <= endYear; year += 1) {
       let pos = yearToCanvas(year);
       if(timelineExpanded) pos += getExpandedYearWidth(year) / 2;
 
-      ctx.font = '12px IvyPresto Display';
+      ctx.font = '12px Inter';
       ctx.fillStyle = '#fff';
       ctx.strokeStyle = highlightColor;
       ctx.beginPath();
@@ -339,9 +338,10 @@
         else if(pixelsPerYear < labelStepZoomThresholds[i]) {
           const fadeIn = (pixelsPerYear - labelStepZoomFadeIn[i]) / (labelStepZoomThresholds[i] - labelStepZoomFadeIn[i]);
           ctx.globalAlpha = easeInCubic(fadeIn);
-        }
+          ctx.moveTo(...flipXY(timelineSize - 6 - 6 * fadeIn, pos));
+        } 
+        else ctx.moveTo(...flipXY(timelineSize - 12, pos));
 
-        ctx.moveTo(...flipXY(timelineSize - 12, pos));
         const textWidth = ctx.measureText(`${Math.round(year)}`).width;
         ctx.fillText(`${Math.round(year)}`, ...flipXY(
           timelineSize - 38, pos + 4,
@@ -356,6 +356,7 @@
         }
 
         ctx.globalAlpha = 1;
+        break;
       }
 
       ctx.lineTo(...flipXY(timelineSize, pos));
@@ -436,9 +437,7 @@
   }
 
   function onmouseout() {
-    mapThumbnails.forEach(m => m.hovering = false);
-    lastHoveredMap = null;
-    clearTimeout(hoverTimeout);
+    resetHoveredMapThumbnail();
   }
 
   let timelineZooming = 0;
@@ -477,7 +476,11 @@
   }
 </script>
 
-<svelte:window bind:innerWidth={screenWidth} bind:innerHeight={screenHeight} bind:devicePixelRatio={devicePixelRatio}/>
+<svelte:window 
+  bind:innerWidth={screenWidth} 
+  bind:innerHeight={screenHeight} 
+  bind:devicePixelRatio={devicePixelRatio}
+/>
 
 <canvas
   bind:this={canvas}

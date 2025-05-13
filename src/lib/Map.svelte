@@ -4,9 +4,10 @@
 
   import LayersPanel from './LayersPanel.svelte';
 
-  import { getIIIFMetadata  } from '../stores/iiif-metadata.svelte';
   import { mapStore } from '../stores/mapStore.svelte';
 	import { timelineStore } from '../stores/timelineStore.svelte';
+  import { getIIIFMetadata  } from '../stores/iiif-metadata.svelte';
+	import SheetOverlay from './SheetOverlay.svelte';
 
   let map;
 
@@ -199,12 +200,13 @@
   function showLineToUIElement(lineGeoJson) {
     const source = map.getSource('line-to-ui-element');
     if(!source) return;
-
+    
     source.setData({
       type: 'Feature',
       geometry: lineGeoJson
     });
-
+    
+    map.moveLayer('line-to-ui-element-dashed');
     setLayerVisibility('line-to-ui-element-dashed', true);
     map.setPaintProperty('line-to-ui-element-dashed', 'line-opacity', 1);
   }
@@ -222,12 +224,14 @@
   function showWarpedMapOutline(polygonGeoJson) {
     const source = map.getSource('warpedmap-highlight');
     if(!source) return;
-
+    
     source.setData({
       type: 'Feature',
       geometry: polygonGeoJson
     });
-
+    
+    map.moveLayer('warpedmap-highlight-sharp');
+    map.moveLayer('warpedmap-highlight-glow');
     setLayerVisibility('warpedmap-highlight-sharp', true);
     map.setPaintProperty('warpedmap-highlight-sharp', 'line-opacity', .5);
     setLayerVisibility('warpedmap-highlight-glow', true);
@@ -254,30 +258,45 @@
       const bounds = new maplibre.LngLatBounds();
       warpedMap.geoMask.coordinates[0].forEach(coord => bounds.extend(coord));
       map.fitBounds(bounds, { padding: 200 });
+
+      mapStore.selectedMap = warpedMap;
     }
   }
 
   let lastHoveredMap = null;
   let hoverTimeout = null;
 
+  function setHoveredMap(map) {
+    showWarpedMapOutline(map.geoMask);
+    mapStore.hoveredMap = map;
+
+    const edition = Object.keys(mapStore.metadata).find(edition => 
+      mapStore.metadata[edition].find(m => m.mapId == map.mapId)
+    )
+    const title = mapStore.metadata[edition].find(m => m.mapId == map.mapId).titel;
+    mapStore.hoveredMapTitle = title;
+  }
+
+  function resetHoveredMap() {
+    mapStore.hoveredMap = null;
+    mapStore.hoveredMapTitle = null;
+    hideWarpedMapOutline();
+    clearTimeout(hoverTimeout);
+  }
+
   function onpointermove(e) {
     const warpedMap = warpedMapAt(e.lngLat.lng, e.lngLat.lat);
     if(warpedMap != lastHoveredMap) { 
-      hideWarpedMapOutline(); 
-      clearTimeout(hoverTimeout); 
+      resetHoveredMap();
       if(warpedMap) hoverTimeout = setTimeout(() => {
-        showWarpedMapOutline(warpedMap.geoMask);
+        setHoveredMap(warpedMap);
       }, 500);
     }
     lastHoveredMap = warpedMap;
   }
 
   function onmouseout(e) {
-    if(lastHoveredMap) {
-      hideWarpedMapOutline();
-      lastHoveredMap = null;
-    }
-    clearTimeout(hoverTimeout);
+    resetHoveredMap();
   }
 </script>
 
@@ -290,10 +309,28 @@
     left: 0;
     z-index: 1;
   }
+
+  .hoveredMapTitle {
+    position: fixed;
+    bottom: 180px;
+    left: 50%;
+    width: 250px;
+    margin-left: -125px;
+    text-align: center;
+    z-index: 100;
+  }
 </style>
 
 <div id="map"></div>
 
 {#if mapStore.loaded}
   <LayersPanel/>
+{/if}
+
+{#if mapStore.selectedMap}
+  <SheetOverlay></SheetOverlay>
+{/if}
+
+{#if mapStore.hoveredMapTitle}
+  <p class="hoveredMapTitle">{mapStore.hoveredMapTitle}</p>
 {/if}
