@@ -504,7 +504,7 @@
     bottom: 0;
     right: 0;
     background: #224;
-    z-index: 10;
+    z-index: 2;
     box-shadow: inset 10px 0 20px -10px rgba(0, 0, 0, 1);
     cursor: grab;
     user-select: none;
@@ -517,7 +517,7 @@
   .resizer {
     position: absolute;
     background: #222244aa;
-    z-index: 10;
+    z-index: 2;
     cursor: ew-resize;
   }
 

@@ -1,4 +1,5 @@
 <script>
+	import { dev } from '$app/environment';
   import { mapStore } from '../stores/mapStore.svelte';
 
   let canvas;
@@ -89,7 +90,9 @@
     if(sheetImage) {
       ctx.save();
       ctx.drawImage(sheetImage, 
-        sheetPadding, sheetPadding, sheetWidth, sheetHeight
+        (screenWidth - sheetWidth) / 2, 
+        (screenHeight - sheetHeight) / 2, 
+        sheetWidth, sheetHeight
       );
 
       if(showSheetMask) {
@@ -97,8 +100,8 @@
         const resourceWidth = mapStore.selectedMap.georeferencedMap.resource.width;
         const resourceHeight = mapStore.selectedMap.georeferencedMap.resource.height;
         ctx.clearRect(
-          mask[0] / resourceWidth * sheetWidth + sheetPadding,
-          mask[1] / resourceHeight * sheetHeight + sheetPadding,
+          mask[0] / resourceWidth * sheetWidth + (screenWidth - sheetWidth) / 2,
+          mask[1] / resourceHeight * sheetHeight + (screenHeight - sheetHeight) / 2,
           (mask[2] - mask[0]) / resourceWidth * sheetWidth, 
           (mask[3] - mask[1]) / resourceHeight * sheetHeight, 
         )
@@ -135,18 +138,17 @@
       const mask = mapStore.selectedMap.resourceMaskBbox;
       const resourceWidth = mapStore.selectedMap.georeferencedMap.resource.width;
       const resourceHeight = mapStore.selectedMap.georeferencedMap.resource.height;
-      const x1 = mask[0] / resourceWidth * sheetWidth + sheetPadding;
-      const y1 = mask[1] / resourceHeight * sheetHeight + sheetPadding;
-      const x2 = (mask[2] - mask[0]) / resourceWidth * sheetWidth + sheetPadding;
-      const y2 = (mask[3] - mask[1]) / resourceHeight * sheetHeight + sheetPadding;
-      console.log(x1, y1, x2, y2);
+      const x1 = mask[0] / resourceWidth * sheetWidth + (screenWidth - sheetWidth) / 2;
+      const y1 = mask[1] / resourceHeight * sheetHeight + (screenHeight - sheetHeight) / 2;
+      const x2 = (mask[2] - mask[0]) / resourceWidth * sheetWidth + (screenWidth - sheetWidth) / 2;
+      const y2 = (mask[3] - mask[1]) / resourceHeight * sheetHeight + (screenHeight - sheetHeight) / 2;
       if(mouse.x >= x1 && mouse.x <= x2) {
         if(mouse.y >= y1 && mouse.y <= y2) {
           return hideMagnifyingGlass();
         }
       }
-      if(mouse.x < sheetPadding || mouse.x > sheetPadding + sheetWidth) return hideMagnifyingGlass();
-      if(mouse.y < sheetPadding || mouse.y > sheetPadding + sheetHeight) return hideMagnifyingGlass();
+      if(mouse.x < (screenWidth - sheetWidth) / 2 || mouse.x > (screenWidth - sheetWidth) / 2 + sheetWidth) return hideMagnifyingGlass();
+      if(mouse.y < (screenHeight - sheetHeight) / 2 || mouse.y > (screenHeight - sheetHeight) / 2 + sheetHeight) return hideMagnifyingGlass();
       showMagnifyingGlass();
       magnifyCanvas.style.left = `${mouse.x - magnifyCanvas.width / 2}px`;
       magnifyCanvas.style.top = `${mouse.y - magnifyCanvas.height / 2}px`;
@@ -156,7 +158,7 @@
       magnifyCtx.clearRect(0,0,175,175)
       magnifyCtx.drawImage(
         canvas, 
-        mouse.x * 2 - 50, mouse.y * 2 - 50, 100, 100,
+        mouse.x * devicePixelRatio - 50, mouse.y * devicePixelRatio - 50, 100, 100,
         0,0,175,175
       );
     }
