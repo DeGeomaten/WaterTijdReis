@@ -272,14 +272,19 @@
       const layer = getLayerOfWarpedMap(warpedMap);
       if(layer) {
         layer.bringMapsToFront([warpedMap.mapId]);
-        warpedMap.georeferencedMap.resourceMask[0][0] = 0;
-        warpedMap.georeferencedMap.resourceMask[0][1] = 10000;
-        warpedMap.georeferencedMap.resourceMask[1][0] = 10000;
-        warpedMap.georeferencedMap.resourceMask[1][1] = 10000;
-        warpedMap.georeferencedMap.resourceMask[2][0] = 10000;
-        warpedMap.georeferencedMap.resourceMask[2][1] = 0;
-        warpedMap.georeferencedMap.resourceMask[3][0] = 0;
-        warpedMap.georeferencedMap.resourceMask[3][1] = 0;
+        const { width, height } = warpedMap.georeferencedMap.resource;
+
+        layer.setMapResourceMask(warpedMap.mapId, [[0,height], [width,height], [width,0], [0,0]]);
+        warpedMap.updateTriangulation(true);
+        // map.triggerRepaint();
+        // warpedMap.georeferencedMap.resourceMask[0][0] = 0;
+        // warpedMap.georeferencedMap.resourceMask[0][1] = 10000;
+        // warpedMap.georeferencedMap.resourceMask[1][0] = 10000;
+        // warpedMap.georeferencedMap.resourceMask[1][1] = 10000;
+        // warpedMap.georeferencedMap.resourceMask[2][0] = 10000;
+        // warpedMap.georeferencedMap.resourceMask[2][1] = 0;
+        // warpedMap.georeferencedMap.resourceMask[3][0] = 0;
+        // warpedMap.georeferencedMap.resourceMask[3][1] = 0;
       }
     }
   }
