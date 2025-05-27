@@ -1,5 +1,4 @@
 <script>
-	import { dev } from '$app/environment';
   import { mapStore } from '../stores/mapStore.svelte';
 
   let canvas;
@@ -28,7 +27,7 @@
 
       window.addEventListener('resize', resizeCanvas);
       window.addEventListener('keydown', e => {
-        if(e.key === 'm') showSheetMask = !showSheetMask;
+        if(e.key === 'm') { showSheetMask = !showSheetMask; draw() }
         if(e.key === 'Escape') hideSheetOverlay();
       });
     }

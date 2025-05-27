@@ -7,7 +7,7 @@
   import { mapStore } from '../stores/mapStore.svelte';
 	import { timelineStore } from '../stores/timelineStore.svelte';
   import { getIIIFMetadata  } from '../stores/iiif-metadata.svelte';
-	import SheetOverlay from './SheetOverlay.svelte';
+	import SheetOverlayNew from './SheetOverlayNew.svelte';
 
   let map;
 
@@ -328,7 +328,7 @@
 {/if}
 
 {#if mapStore.selectedMap}
-  <SheetOverlay></SheetOverlay>
+  <SheetOverlayNew></SheetOverlayNew>
 {/if}
 
 {#if mapStore.hoveredMapTitle}

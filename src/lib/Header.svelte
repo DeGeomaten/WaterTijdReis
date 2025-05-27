@@ -2,8 +2,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import feather from 'feather-icons';
-    import { goto } from '$app/navigation';
-    import { page } from '$app/stores';
     import AboutPage from '$lib/AboutPage.svelte';
   
     let searchQuery = "";

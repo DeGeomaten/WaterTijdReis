@@ -50,7 +50,7 @@
     resizeCanvas();
 
     if(!timelineStore.loaded && mapStore.loaded) {
-      setTimeout(initTimeline, 500);
+      setTimeout(initTimeline, 500); // TODO: check if all warped maps are loaded instead
     }
   });
 
