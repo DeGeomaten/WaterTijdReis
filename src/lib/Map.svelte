@@ -87,7 +87,7 @@
     m.on('click', onpointerclick);
     m.on('mousemove', onpointermove);
     m.on('mouseout', onmouseout);
-    // m.on('idle', () => { m.triggerRepaint() })
+    m.on('idle', m.triggerRepaint)
 
     return m;
   }
