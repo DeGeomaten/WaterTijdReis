@@ -139,14 +139,7 @@
 <div class="layerspanel">
   <h2>LAGEN</h2>
   <div class="layers-checkboxes">
-    <!-- {#each ['editie_1', 'editie_2', 'editie_3', 'editie_4', 'editie_5'] as layer}
-      <label>
-        <input type="checkbox" bind:checked={mapStore.visibleLayers[layer]} />
-        <i class="icon">{layer.split('_')[1]}</i>
-        <span class="description">Editie {layer.split('_')[1]}</span>
-      </label>
-    {/each} -->
-
+   
     <label>
       <input type="checkbox" checked={true}/>
       <i class="icon">1</i>

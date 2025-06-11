@@ -89,25 +89,25 @@
 
       WSK.loadMetadata().then(i => console.log(mapStore.metadata));
 
-      // m.addSource('dsm-05', {
-      //   type: 'raster',
-      //   tiles: [
-      //     'https://service.pdok.nl/rws/ahn/wms/v1_0?REQUEST=GetMap&SERVICE=WMS&VERSION=1.3.0&FORMAT=image/png&STYLES=&TRANSPARENT=TRUE&LAYERS=dsm_05m&TILED=true&WIDTH=256&HEIGHT=256&CRS=EPSG:3857&BBOX={bbox-epsg-3857}'
-      //   ],
-      //   tileSize: 256
-      // });
+      m.addSource('dsm-05', {
+        type: 'raster',
+        tiles: [
+          'https://service.pdok.nl/rws/ahn/wms/v1_0?REQUEST=GetMap&SERVICE=WMS&VERSION=1.3.0&FORMAT=image/png&STYLES=&TRANSPARENT=TRUE&LAYERS=dsm_05m&TILED=true&WIDTH=256&HEIGHT=256&CRS=EPSG:3857&BBOX={bbox-epsg-3857}'
+        ],
+        tileSize: 256
+      });
 
-      // m.addLayer({
-      //   id: 'dsm-05-layer',
-      //   type: 'raster',
-      //   source: 'dsm-05',
-      //   paint: {}
-      // });
+      m.addLayer({
+        id: 'dsm-05-layer',
+        type: 'raster',
+        source: 'dsm-05',
+        paint: {}
+      });
 
-      // setInterval(() => {
-      //   mapStore.warpedMapsInViewport = Array.from(waterStaatsKaartLayers['editie_3'].renderer.mapsInViewport)
-      //     .map(id => waterStaatsKaartLayers['editie_3'].renderer.warpedMapList.warpedMapsById.get(id))
-      // }, 500);
+      setInterval(() => {
+        mapStore.warpedMapsInViewport = Array.from(waterStaatsKaartLayers['editie_3'].renderer.mapsInViewport)
+          .map(id => waterStaatsKaartLayers['editie_3'].renderer.warpedMapList.warpedMapsById.get(id))
+      }, 500);
     });
 
     m.on('click', onpointerclick);
