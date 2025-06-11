@@ -4,10 +4,12 @@ export const mapStore = $state({
   warpedMapLayers: {},
   metadata: {},
   visibleLayers: {},
+  showBaseMap: true,
   showWater: false,
   showLabels: false,
   warpedMapsInViewport: [],
-  selectedMap: null
+  selectedMap: null,
+  pointerScreenPos: { x: 0, y: 0 }
 })
 
 

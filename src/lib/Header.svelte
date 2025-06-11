@@ -3,6 +3,8 @@
     import { onMount } from 'svelte';
     import feather from 'feather-icons';
     import AboutPage from '$lib/AboutPage.svelte';
+
+    import Geocoder from './Geocoder.svelte';
   
     let searchQuery = "";
     let showAboutPage = false;
@@ -105,6 +107,7 @@
   </style>
   
   <div class="header">
+    <!-- <Geocoder></Geocoder> -->
     <div class="search-bar-container">
       <input
       type="text"

@@ -3,6 +3,8 @@
   import { lerp, easeInCubic, easeOutCubic, easeOutBounce } from '../stores/animation.svelte';
   import { timelineStore } from '../stores/timelineStore.svelte';
 	import { getIIIFMetadata } from '../stores/iiif-metadata.svelte';
+	import { filterStore } from '../stores/filterStore.svelte';
+	import { returnOrUpdate } from 'ol/extent';
 
   let canvas;
   let ctx;
@@ -10,7 +12,7 @@
   let screenWidth = $state(0)
   let screenHeight = $state(0);
   let devicePixelRatio = $state(1);
-  let timelineLength = $derived(timelineStore.horizontal ? screenWidth : screenHeight);
+  let timelineLength = $derived(timelineStore.horizontal ? screenWidth - 20 : screenHeight - 20);
   let timelineSize = $derived(timelineStore.size);
 
   let highlightColor = '#f55';
@@ -34,6 +36,9 @@
   let pixelsPerYear = $derived(timelineLength / (endYear - startYear));
 
   let timelineExpanded = false;
+
+  let timelineBoundsPattern;
+  let timelineBoundsPatternOffset = 0;
 
   $effect(() => {
     if(!ctx) {
@@ -98,7 +103,7 @@
 
       if(expandProgress > .1) return;
       ctx.globalAlpha = 1 - expandProgress * 10;
-      ctx.fillStyle = highlightColor;
+      ctx.fillStyle = '#00000033';
       ctx.beginPath();
       ctx.arc(
         this.mapThumbnails[0].thumbnailX + this.mapThumbnails[0].thumbnailWidth / 2, 
@@ -142,7 +147,7 @@
       this.edition = Object.keys(mapStore.metadata).find(edition => 
         mapStore.metadata[edition].find(map => map.mapId == this.id)
       )
-      this.year = mapStore.metadata[this.edition].find(map => map.mapId == this.id).hz;
+      this.year = +mapStore.metadata[this.edition].find(map => map.mapId == this.id).hz || mapStore.metadata[this.edition].find(map => map.mapId == this.id).bw;
 
       this.animating = {}
     }
@@ -301,7 +306,7 @@
   function initTimeline() {
     timelineStore.loaded = true;
 
-    for(const edition of ['editie_2', 'editie_3']) {
+    for(const edition of ['editie_1', 'editie_2', 'editie_3', 'editie_4', 'editie_5']) {
       mapStore.warpedMapLayers[edition].renderer.warpedMapList.warpedMapsById.forEach(warpedMap => {
         const mapThumbnail = new MapThumbnail(warpedMap);
         if(!mapThumbnails.has(mapThumbnail.year)) 
@@ -314,6 +319,25 @@
           ]))
       })
     }
+
+
+    const patternCanvas = new OffscreenCanvas(64,64);
+    const pctx = patternCanvas.getContext('2d');
+    pctx.strokeStyle = '#ffffff44';
+    pctx.lineWidth = 2;
+    for(let i = -4; i <= 64 - 4; i += 8) {
+      pctx.beginPath();
+      pctx.moveTo(-1, i + 1);
+      pctx.lineTo(i + 1, -1);
+      pctx.stroke();
+      if(i < 4) continue;
+      pctx.beginPath();
+      pctx.moveTo(64 + 1, i - 1);
+      pctx.lineTo(i - 1, 64 + 1);
+      pctx.stroke();
+    }
+
+    timelineBoundsPattern = ctx.createPattern(patternCanvas, 'repeat');
 
   }
 
@@ -384,6 +408,16 @@
         mapThumbnail.draw();
       }
     }
+
+    timelineBoundsPatternOffset = (timelineBoundsPatternOffset + .2) % 8;
+    ctx.translate(-timelineBoundsPatternOffset, 0);
+    ctx.fillStyle = '#8888cc66';
+    ctx.fillRect(timelineBoundsPatternOffset,0, yearToCanvas(filterStore.yearRange[0]), timelineStore.size)
+    ctx.fillRect(yearToCanvas(filterStore.yearRange[1]) + timelineBoundsPatternOffset, 0, ctx.canvas.width, timelineStore.size)
+    ctx.fillStyle = timelineBoundsPattern;
+    ctx.fillRect(timelineBoundsPatternOffset,0, yearToCanvas(filterStore.yearRange[0]), timelineStore.size)
+    ctx.fillRect(yearToCanvas(filterStore.yearRange[1]) + timelineBoundsPatternOffset, 0, ctx.canvas.width, timelineStore.size)
+    ctx.translate(timelineBoundsPatternOffset, 0);
 
     requestAnimationFrame(draw);
   }
@@ -502,12 +536,15 @@
   .timeline-canvas {
     position: fixed;
     bottom: 0;
-    right: 0;
+    /* right: 0; */
     background: #224;
     z-index: 2;
     box-shadow: inset 10px 0 20px -10px rgba(0, 0, 0, 1);
     cursor: grab;
     user-select: none;
+    margin: 10px;
+    border-radius: 4px;
+    opacity: .95;
   }
 
   .timeline-canvas:active {
@@ -522,11 +559,16 @@
   }
 
   .resizer.horizontal {
-    width: 100%;
-    height: 5px;
-    bottom: 160px;
+    width: 80px;
+    height: 4px;
+    bottom: calc(160px + 2px); 
+    left: 50%;
+    margin-left: -40px;
+    z-index: 3;
+    background: #ffffff55;
+    border-radius: 4px;
     /* margin-bottom: -4px; */
-    left: 0;
+    /* left: 0; */
     cursor: ns-resize;
   }
 

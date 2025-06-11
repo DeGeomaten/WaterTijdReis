@@ -1,10 +1,12 @@
 <script>
   import { mapStore } from '../stores/mapStore.svelte';
 
+  import StackPlus from 'phosphor-svelte/lib/StackPlus'
+
   const editions = [1,2,3,4,5].map(i => `editie_${i}`);
   for(let ed of editions) mapStore.visibleLayers[ed] = false;
 
-  mapStore.visibleLayers['editie_3'] = true;
+  // mapStore.visibleLayers['editie_3'] = true;
 
   function onkeydown(e) { 
     if(e.code.includes('Digit') && +e.code.slice(-1) <= 5) {
@@ -56,6 +58,17 @@
     transition: opacity .3s;
   }
   .layerspanel:hover h2 {
+    opacity: 1;
+  }
+
+  .layerspanel button {
+    opacity: 0;
+    transition: opacity .3s;
+    font-family: 'Inter';
+    font-size: 14px;
+  }
+
+  .layerspanel:hover button {
     opacity: 1;
   }
 
@@ -126,25 +139,42 @@
 <div class="layerspanel">
   <h2>LAGEN</h2>
   <div class="layers-checkboxes">
-    {#each ['editie_1', 'editie_2', 'editie_3', 'editie_4', 'editie_5'] as layer}
+    <!-- {#each ['editie_1', 'editie_2', 'editie_3', 'editie_4', 'editie_5'] as layer}
       <label>
         <input type="checkbox" bind:checked={mapStore.visibleLayers[layer]} />
         <i class="icon">{layer.split('_')[1]}</i>
         <span class="description">Editie {layer.split('_')[1]}</span>
       </label>
-    {/each}
+    {/each} -->
+
+    <label>
+      <input type="checkbox" checked={true}/>
+      <i class="icon">1</i>
+      <span class="description">Waterstaatskaarten</span>
+    </label>
+
+    <label>
+      <input type="checkbox" bind:checked={mapStore.showBaseMap} />
+      <i class="icon">2</i>
+      <span class="description">Achtergrondkaart</span>
+    </label>
 
     <label>
       <input type="checkbox" bind:checked={mapStore.showLabels} />
-      <i class="icon">6</i>
+      <i class="icon">3</i>
       <span class="description">Toon labels</span>
     </label>
 
     <label>
       <input type="checkbox" bind:checked={mapStore.showWater} />
-      <i class="icon">7</i>
+      <i class="icon">4</i>
       <span class="description">Toon water</span>
     </label>
+
+    <button class="rounded-[4px] px-[11px] mt-[10px] outline-2 outline-[#4466ff22] bg-[#224] text-[#fff] shadow-mini hover:border-4-[#ffffff44] inline-flex h-10 select-none items-center justify-center whitespace-nowrap">
+      <StackPlus class="mr-[10px]"/> 
+      Laag toevoegen
+    </button>
   </div>
 </div>
 

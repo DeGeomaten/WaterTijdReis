@@ -173,7 +173,10 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background: #00000022;
+    border: 100px solid #00000088;
+    outline: 500px solid #00000088;
+    z-index: 10000;
+    pointer-events: none;
   }
 
   .sheetOverlayMask {

@@ -1,6 +1,6 @@
 export const timelineStore = $state({
     loaded: false,
-    size: 160,
+    size: 133,
     horizontal: true,
     hoveredMap: null,
     hoverX: 0,
