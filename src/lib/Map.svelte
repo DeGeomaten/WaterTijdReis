@@ -61,7 +61,6 @@
 		});
 
 		m.on('load', () => {
-			mapStore.loaded = true;
       waterStaatsKaarten = mapStore.waterStaatsKaarten = new WSK(m);
 
 			initWarpedMapHighlight();
@@ -190,7 +189,7 @@
       if(mapStore.hoveredMap) setHoveredMap(mapStore.hoveredMap)
     })
 
-    m.on('zoomend', e => {
+    m.on('zoom', e => {
       const zoom = m.getZoom();
       if(zoom < 9) {
         if(performance.now() - selectedMapTime > 2500) resetSelectedMap();
@@ -478,6 +477,7 @@
   let selectedMapResourceMask = null;
 
   function setSelectedMap(warpedMap) {
+	resetSelectedMap();
     if(!mapStore.waterStaatsKaarten) return;
 
     mapStore.selectedMap = warpedMap;

@@ -65,6 +65,7 @@ export class WSK {
                 map.maskBbox = warpedMap?.geoMaskBbox;
 
                 if(warpedMapsById.size >= this.maps.length) { // TODO: werkt dit altijd?
+                    mapStore.loaded = true;
                     setInterval(() => {
                         this.updateVisibleMaps();
                         maplibreInstance.triggerRepaint();

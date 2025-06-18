@@ -191,7 +191,7 @@
 				/>
 				<i class="icon">{i + 1}</i>
 				<span class="description">{layer.label}</span>
-				<span class="drag-handle"><DotsSixVertical size={18} /></span>
+				<span class="drag-handle absolute right-3"><DotsSixVertical size={18}/></span>
 			</label>
 		{/each}
 
