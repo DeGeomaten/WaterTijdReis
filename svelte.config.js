@@ -15,8 +15,7 @@ const config = {
 		// See https://svelte.dev/docs/kit/adapters for more information about adapters.
 		adapter: adapter(),
 		paths: {
-			base: dev ? '' : '/WaterTijdReis',
-			assets: dev ? '' : '/WaterTijdReis'
+			base: dev ? '' : '/WaterTijdReis'
 		},
 		prerender: {
 			handleHttpError: 'warn' // voorkomt crash bij 404

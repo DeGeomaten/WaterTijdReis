@@ -154,7 +154,7 @@
     </div>
   
     <div class="logo">
-      <img src="/logo.png" alt="Logo" />
+      <img src="logo.png" alt="Logo" />
       <span style="font-family: Inter; font-weight: 200">x</span>
       <svg version="1.1" id="Layer_1" width="30" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 1440 1440" xml:space="preserve">
         <style type="text/css">
