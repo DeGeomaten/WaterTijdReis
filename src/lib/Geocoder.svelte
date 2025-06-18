@@ -5,8 +5,8 @@
   import { createEventDispatcher } from 'svelte'
   import MagnifyingGlass from 'phosphor-svelte/lib/MagnifyingGlass';
 
-  import type { GeocoderGeoJsonFeature } from '$lib/shared/types'
-  import type { GeocoderProvider } from '$lib/shared/geocoder/provider'
+  // import type { GeocoderGeoJsonFeature } from '$lib/shared/types'
+  // import type { GeocoderProvider } from '$lib/shared/geocoder/provider'
 
   type Item<T> = {
     value: T

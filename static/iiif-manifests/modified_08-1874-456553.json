@@ -1,0 +1,1251 @@
+{
+    "@context": "http://iiif.io/api/presentation/3/context.json",
+    "id": "https://tu-delft-heritage.github.io/watertijdreis-data/manifests/08-1874-456553/manifest.json",
+    "type": "Manifest",
+    "label": {
+        "none": [
+            "Waterstaatskaart van Nederland, 4e editie BIS *VII*.B.a.795 (Dk36-14)"
+        ]
+    },
+    "metadata": [
+        {
+            "label": {
+                "none": [
+                    "Title"
+                ]
+            },
+            "value": {
+                "none": [
+                    "Waterstaatskaart van Nederland"
+                ]
+            }
+        },
+        {
+            "label": {
+                "none": [
+                    "Published"
+                ]
+            },
+            "value": {
+                "none": [
+                    "1972"
+                ]
+            }
+        },
+        {
+            "label": {
+                "none": [
+                    "Format"
+                ]
+            },
+            "value": {
+                "none": [
+                    "Map"
+                ]
+            }
+        }
+    ],
+    "summary": {
+        "none": [
+            "Summary not supplied"
+        ]
+    },
+    "requiredStatement": {
+        "label": {
+            "en": [
+                "Attribution"
+            ]
+        },
+        "value": {
+            "en": [
+                "University Utrecht Library - Special Collections "
+            ]
+        }
+    },
+    "rendering": [
+        {
+            "id": "https://objects.library.uu.nl/reader/index.php?obj=1874-456553",
+            "type": "Text",
+            "label": {
+                "none": [
+                    "View at University Utrecht Library"
+                ]
+            }
+        },
+        {
+            "id": "https://objects.library.uu.nl/reader/ftxt.php?obj=1874-456553&format=1&pagenum=1",
+            "type": "Text",
+            "format": "application/pdf",
+            "label": {
+                "none": [
+                    "Download as PDF"
+                ]
+            }
+        },
+        {
+            "id": "https://www.worldcat.org/oclc/1450718320",
+            "type": "Text",
+            "label": {
+                "none": [
+                    "View in WorldCat catalogue"
+                ]
+            }
+        }
+    ],
+    "homepage": [
+        {
+            "id": "http://localhost:7111/manifests/content/iiif-manifests/1874-456553",
+            "type": "ContentResource"
+        },
+        {
+            "id": "http://localhost:7111/manifests/content/iiif-manifests/07-1874-456553",
+            "type": "ContentResource"
+        }
+    ],
+    "items": [
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p1",
+            "type": "Canvas",
+            "height": 6633,
+            "width": 8231,
+            "label": {
+                "none": [
+                    "18"
+                ]
+            },
+            "metadata": [
+                {
+                    "label": {
+                        "en": [
+                            "herzien"
+                        ]
+                    },
+                    "value": {
+                        "en": [
+                            "1978"
+                        ]
+                    }
+                },
+                {
+                    "label": {
+                        "en": [
+                            "uitgave"
+                        ]
+                    },
+                    "value": {
+                        "en": [
+                            "1979"
+                        ]
+                    }
+                }
+            ],
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/page/p1/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456553-1-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p1",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/30/35/68/30356843151018575454575848823236625600.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6633,
+                                "width": 8231,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/30/35/68/30356843151018575454575848823236625600.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p2",
+            "type": "Canvas",
+            "height": 6662,
+            "width": 8256,
+            "label": {
+                "none": [
+                    "18.watervoorzieningseenheden"
+                ]
+            },
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/page/p2/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456553-2-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p2",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/69/16/19/69161995868550512179886997694825330450.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6662,
+                                "width": 8256,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/69/16/19/69161995868550512179886997694825330450.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p3",
+            "type": "Canvas",
+            "height": 6678,
+            "width": 8314,
+            "label": {
+                "none": [
+                    "18.hydrologische waarnemingspunten"
+                ]
+            },
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/page/p3/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456553-3-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p3",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/70/85/71/70857190359779248391066755754956882585.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6678,
+                                "width": 8314,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/70/85/71/70857190359779248391066755754956882585.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p4",
+            "type": "Canvas",
+            "height": 6625,
+            "width": 8231,
+            "label": {
+                "none": [
+                    "20.W"
+                ]
+            },
+            "metadata": [
+                {
+                    "label": {
+                        "en": [
+                            "herzien"
+                        ]
+                    },
+                    "value": {
+                        "en": [
+                            "1972"
+                        ]
+                    }
+                },
+                {
+                    "label": {
+                        "en": [
+                            "uitgave"
+                        ]
+                    },
+                    "value": {
+                        "en": [
+                            "1973"
+                        ]
+                    }
+                }
+            ],
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/page/p4/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456553-4-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p4",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/16/47/19/164719823244076584885740658893935283472.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6625,
+                                "width": 8231,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/16/47/19/164719823244076584885740658893935283472.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p5",
+            "type": "Canvas",
+            "height": 6645,
+            "width": 8285,
+            "label": {
+                "none": [
+                    "20.W.watervoorzieningseenheden"
+                ]
+            },
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/page/p5/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456553-5-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p5",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/34/94/01/3494014141186786394208098206924265752.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6645,
+                                "width": 8285,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/34/94/01/3494014141186786394208098206924265752.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p6",
+            "type": "Canvas",
+            "height": 6655,
+            "width": 8265,
+            "label": {
+                "none": [
+                    "20.W.hydrologische waarnemingspunten"
+                ]
+            },
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/page/p6/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456553-6-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p6",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/94/95/87/94958721412829698525682367626702226869.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6655,
+                                "width": 8265,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/94/95/87/94958721412829698525682367626702226869.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p7",
+            "type": "Canvas",
+            "height": 6638,
+            "width": 8234,
+            "label": {
+                "none": [
+                    "21.W"
+                ]
+            },
+            "metadata": [
+                {
+                    "label": {
+                        "en": [
+                            "herzien"
+                        ]
+                    },
+                    "value": {
+                        "en": [
+                            "1973"
+                        ]
+                    }
+                },
+                {
+                    "label": {
+                        "en": [
+                            "uitgave"
+                        ]
+                    },
+                    "value": {
+                        "en": [
+                            "1975"
+                        ]
+                    }
+                }
+            ],
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/page/p7/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456553-7-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p7",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/78/84/80/7884809343230007246440293041456222676.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6638,
+                                "width": 8234,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/78/84/80/7884809343230007246440293041456222676.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p8",
+            "type": "Canvas",
+            "height": 6656,
+            "width": 8246,
+            "label": {
+                "none": [
+                    "21.W.back"
+                ]
+            },
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/page/p8/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456553-8-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p8",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/16/22/59/162259065607998773811995256432620467096.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6656,
+                                "width": 8246,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/16/22/59/162259065607998773811995256432620467096.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p9",
+            "type": "Canvas",
+            "height": 6652,
+            "width": 8265,
+            "label": {
+                "none": [
+                    "21.W.watervoorzieningseenheden"
+                ]
+            },
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/page/p9/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456553-9-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p9",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/26/77/95/26779538231751021358805586802639648703.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6652,
+                                "width": 8265,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/26/77/95/26779538231751021358805586802639648703.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p10",
+            "type": "Canvas",
+            "height": 6653,
+            "width": 8265,
+            "label": {
+                "none": [
+                    "21.W.hydrologische waarnemingspunten"
+                ]
+            },
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/page/p10/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456553-10-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p10",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/99/84/81/99848157384031774124560312879659725398.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6653,
+                                "width": 8265,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/99/84/81/99848157384031774124560312879659725398.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p11",
+            "type": "Canvas",
+            "height": 6636,
+            "width": 8230,
+            "label": {
+                "none": [
+                    "22.W"
+                ]
+            },
+            "metadata": [
+                {
+                    "label": {
+                        "en": [
+                            "herzien"
+                        ]
+                    },
+                    "value": {
+                        "en": [
+                            "1977"
+                        ]
+                    }
+                },
+                {
+                    "label": {
+                        "en": [
+                            "uitgave"
+                        ]
+                    },
+                    "value": {
+                        "en": [
+                            "1979"
+                        ]
+                    }
+                }
+            ],
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/page/p11/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456553-11-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p11",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/19/43/67/19436750582612081269553871608656032066.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6636,
+                                "width": 8230,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/19/43/67/19436750582612081269553871608656032066.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p12",
+            "type": "Canvas",
+            "height": 6627,
+            "width": 8240,
+            "label": {
+                "none": [
+                    "22.W.back"
+                ]
+            },
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/page/p12/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456553-12-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p12",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/69/33/66/69336616875796683808420214605460406646.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6627,
+                                "width": 8240,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/69/33/66/69336616875796683808420214605460406646.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p13",
+            "type": "Canvas",
+            "height": 6663,
+            "width": 8273,
+            "label": {
+                "none": [
+                    "22.W.watervoorzieningseenheden"
+                ]
+            },
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/page/p13/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456553-13-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p13",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/67/69/79/67697910193130638911805266921206026364.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6663,
+                                "width": 8273,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/67/69/79/67697910193130638911805266921206026364.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p14",
+            "type": "Canvas",
+            "height": 6662,
+            "width": 8273,
+            "label": {
+                "none": [
+                    "22.W.hydrologische waarnemingspunten"
+                ]
+            },
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/page/p14/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456553-14-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p14",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/83/92/44/83924441006693774052491156413312444619.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6662,
+                                "width": 8273,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/83/92/44/83924441006693774052491156413312444619.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p15",
+            "type": "Canvas",
+            "height": 6644,
+            "width": 8230,
+            "label": {
+                "none": [
+                    "22.E"
+                ]
+            },
+            "metadata": [
+                {
+                    "label": {
+                        "en": [
+                            "herzien"
+                        ]
+                    },
+                    "value": {
+                        "en": [
+                            "1978"
+                        ]
+                    }
+                },
+                {
+                    "label": {
+                        "en": [
+                            "uitgave"
+                        ]
+                    },
+                    "value": {
+                        "en": [
+                            "1980"
+                        ]
+                    }
+                }
+            ],
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/page/p15/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456553-15-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p15",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/12/82/21/128221786350547957493477043620924009229.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6644,
+                                "width": 8230,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/12/82/21/128221786350547957493477043620924009229.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p16",
+            "type": "Canvas",
+            "height": 6632,
+            "width": 8237,
+            "label": {
+                "none": [
+                    "22.E.back"
+                ]
+            },
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/page/p16/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456553-16-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p16",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/14/00/95/140095835225459424472754230132912895087.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6632,
+                                "width": 8237,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/14/00/95/140095835225459424472754230132912895087.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p17",
+            "type": "Canvas",
+            "height": 6702,
+            "width": 8293,
+            "label": {
+                "none": [
+                    "22.E.watervoorzieningseenheden"
+                ]
+            },
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/page/p17/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456553-17-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p17",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/15/97/38/159738926934538594988125504133318994302.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6702,
+                                "width": 8293,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/15/97/38/159738926934538594988125504133318994302.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p18",
+            "type": "Canvas",
+            "height": 6633,
+            "width": 8261,
+            "label": {
+                "none": [
+                    "22.E.hydrologische waarnemingspunten"
+                ]
+            },
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/page/p18/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456553-18-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p18",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/95/22/44/95224434810536946963272208143415124039.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6633,
+                                "width": 8261,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/95/22/44/95224434810536946963272208143415124039.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p19",
+            "type": "Canvas",
+            "height": 6637,
+            "width": 8232,
+            "label": {
+                "none": [
+                    "26.W"
+                ]
+            },
+            "metadata": [
+                {
+                    "label": {
+                        "en": [
+                            "herzien"
+                        ]
+                    },
+                    "value": {
+                        "en": [
+                            "1972"
+                        ]
+                    }
+                },
+                {
+                    "label": {
+                        "en": [
+                            "uitgave"
+                        ]
+                    },
+                    "value": {
+                        "en": [
+                            "1972"
+                        ]
+                    }
+                }
+            ],
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/page/p19/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456553-19-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p19",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/31/66/58/31665881467462707998123522206502823306.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6637,
+                                "width": 8232,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/31/66/58/31665881467462707998123522206502823306.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p20",
+            "type": "Canvas",
+            "height": 6677,
+            "width": 8261,
+            "label": {
+                "none": [
+                    "26.W.watervoorzieningseenheden"
+                ]
+            },
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/page/p20/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456553-20-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p20",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/55/26/11/55261176648814157723540775052193408508.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6677,
+                                "width": 8261,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/55/26/11/55261176648814157723540775052193408508.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p21",
+            "type": "Canvas",
+            "height": 6686,
+            "width": 8276,
+            "label": {
+                "none": [
+                    "26.W.hydrologische waarnemingspunten"
+                ]
+            },
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/page/p21/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456553-21-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p21",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/12/93/84/129384864749421175702130725203306994978.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6686,
+                                "width": 8276,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/12/93/84/129384864749421175702130725203306994978.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p22",
+            "type": "Canvas",
+            "height": 6633,
+            "width": 8247,
+            "label": {
+                "none": [
+                    "26.E"
+                ]
+            },
+            "metadata": [
+                {
+                    "label": {
+                        "en": [
+                            "herzien"
+                        ]
+                    },
+                    "value": {
+                        "en": [
+                            "1972"
+                        ]
+                    }
+                },
+                {
+                    "label": {
+                        "en": [
+                            "uitgave"
+                        ]
+                    },
+                    "value": {
+                        "en": [
+                            "1973"
+                        ]
+                    }
+                }
+            ],
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/page/p22/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456553-22-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p22",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/91/93/02/91930258040209071847626815598611387378.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6633,
+                                "width": 8247,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/91/93/02/91930258040209071847626815598611387378.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p23",
+            "type": "Canvas",
+            "height": 6659,
+            "width": 8253,
+            "label": {
+                "none": [
+                    "26.E.hydrologische waarnemingspunten"
+                ]
+            },
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/page/p23/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456553-23-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p23",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/51/60/53/51605347032923504398633749530398717684.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6659,
+                                "width": 8253,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/51/60/53/51605347032923504398633749530398717684.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p24",
+            "type": "Canvas",
+            "height": 6654,
+            "width": 8240,
+            "label": {
+                "none": [
+                    "59"
+                ]
+            },
+            "metadata": [
+                {
+                    "label": {
+                        "en": [
+                            "herzien"
+                        ]
+                    },
+                    "value": {
+                        "en": [
+                            "1973"
+                        ]
+                    }
+                },
+                {
+                    "label": {
+                        "en": [
+                            "uitgave"
+                        ]
+                    },
+                    "value": {
+                        "en": [
+                            "1974"
+                        ]
+                    }
+                }
+            ],
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456553/page/p24/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456553-24-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456553/canvas/p24",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/31/13/34/31133443807261766365918265015458759026.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6654,
+                                "width": 8240,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/31/13/34/31133443807261766365918265015458759026.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

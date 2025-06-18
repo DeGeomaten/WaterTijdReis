@@ -1,0 +1,1017 @@
+{
+    "@context": "http://iiif.io/api/presentation/3/context.json",
+    "id": "https://tu-delft-heritage.github.io/watertijdreis-data/manifests/04-1874-456550/manifest.json",
+    "type": "Manifest",
+    "label": {
+        "none": [
+            "Waterstaatskaart van Nederland, 2e editie BIS *VII*.B.a.795 (Dk36-13)"
+        ]
+    },
+    "metadata": [
+        {
+            "label": {
+                "none": [
+                    "Title"
+                ]
+            },
+            "value": {
+                "none": [
+                    "Waterstaatskaart van Nederland"
+                ]
+            }
+        },
+        {
+            "label": {
+                "none": [
+                    "Published"
+                ]
+            },
+            "value": {
+                "none": [
+                    "1941"
+                ]
+            }
+        },
+        {
+            "label": {
+                "none": [
+                    "Format"
+                ]
+            },
+            "value": {
+                "none": [
+                    "Map"
+                ]
+            }
+        }
+    ],
+    "summary": {
+        "none": [
+            "Summary not supplied"
+        ]
+    },
+    "requiredStatement": {
+        "label": {
+            "en": [
+                "Attribution"
+            ]
+        },
+        "value": {
+            "en": [
+                "University Utrecht Library - Special Collections "
+            ]
+        }
+    },
+    "rendering": [
+        {
+            "id": "https://objects.library.uu.nl/reader/index.php?obj=1874-456550",
+            "type": "Text",
+            "label": {
+                "none": [
+                    "View at University Utrecht Library"
+                ]
+            }
+        },
+        {
+            "id": "https://objects.library.uu.nl/reader/ftxt.php?obj=1874-456550&format=1&pagenum=1",
+            "type": "Text",
+            "format": "application/pdf",
+            "label": {
+                "none": [
+                    "Download as PDF"
+                ]
+            }
+        },
+        {
+            "id": "https://www.worldcat.org/oclc/1449550040",
+            "type": "Text",
+            "label": {
+                "none": [
+                    "View in WorldCat catalogue"
+                ]
+            }
+        }
+    ],
+    "homepage": [
+        {
+            "id": "http://localhost:7111/manifests/content/iiif-manifests/1874-456550",
+            "type": "ContentResource"
+        }
+    ],
+    "items": [
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456550/canvas/p1",
+            "type": "Canvas",
+            "height": 6670,
+            "width": 8946,
+            "label": {
+                "none": [
+                    "30.W.E"
+                ]
+            },
+            "metadata": [
+                {
+                    "label": {
+                        "en": [
+                            "herzien"
+                        ]
+                    },
+                    "value": {
+                        "en": [
+                            "1941"
+                        ]
+                    }
+                },
+                {
+                    "label": {
+                        "en": [
+                            "bijgewerkt"
+                        ]
+                    },
+                    "value": {
+                        "en": [
+                            "1944"
+                        ]
+                    }
+                }
+            ],
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456550/page/p1/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456550-1-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456550/canvas/p1",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/13/21/13/132113161437259064902898567127894309115.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6670,
+                                "width": 8946,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/13/21/13/132113161437259064902898567127894309115.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456550/canvas/p2",
+            "type": "Canvas",
+            "height": 6656,
+            "width": 8949,
+            "label": {
+                "none": [
+                    "30.W.E.back"
+                ]
+            },
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456550/page/p2/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456550-2-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456550/canvas/p2",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/12/69/97/126997888515442677248818176726951724408.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6656,
+                                "width": 8949,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/12/69/97/126997888515442677248818176726951724408.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456550/canvas/p3",
+            "type": "Canvas",
+            "height": 6774,
+            "width": 8374,
+            "label": {
+                "none": [
+                    "42"
+                ]
+            },
+            "metadata": [
+                {
+                    "label": {
+                        "en": [
+                            "herzien"
+                        ]
+                    },
+                    "value": {
+                        "en": [
+                            "1942"
+                        ]
+                    }
+                },
+                {
+                    "label": {
+                        "en": [
+                            "bijgewerkt"
+                        ]
+                    },
+                    "value": {
+                        "en": [
+                            "1946"
+                        ]
+                    }
+                }
+            ],
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456550/page/p3/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456550-3-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456550/canvas/p3",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/15/49/31/154931682281052174352980238673376559066.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6774,
+                                "width": 8374,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/15/49/31/154931682281052174352980238673376559066.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456550/canvas/p4",
+            "type": "Canvas",
+            "height": 6901,
+            "width": 8209,
+            "label": {
+                "none": [
+                    "43.W"
+                ]
+            },
+            "metadata": [
+                {
+                    "label": {
+                        "en": [
+                            "herzien"
+                        ]
+                    },
+                    "value": {
+                        "en": [
+                            "1939"
+                        ]
+                    }
+                },
+                {
+                    "label": {
+                        "en": [
+                            "bijgewerkt"
+                        ]
+                    },
+                    "value": {
+                        "en": [
+                            "1942"
+                        ]
+                    }
+                }
+            ],
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456550/page/p4/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456550-4-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456550/canvas/p4",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/76/59/19/76591993333542032605941527072767551371.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6901,
+                                "width": 8209,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/76/59/19/76591993333542032605941527072767551371.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456550/canvas/p5",
+            "type": "Canvas",
+            "height": 7024,
+            "width": 8243,
+            "label": {
+                "none": [
+                    "43.E"
+                ]
+            },
+            "metadata": [
+                {
+                    "label": {
+                        "en": [
+                            "herzien"
+                        ]
+                    },
+                    "value": {
+                        "en": [
+                            "1939"
+                        ]
+                    }
+                },
+                {
+                    "label": {
+                        "en": [
+                            "bijgewerkt"
+                        ]
+                    },
+                    "value": {
+                        "en": [
+                            "1942"
+                        ]
+                    }
+                }
+            ],
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456550/page/p5/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456550-5-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456550/canvas/p5",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/15/51/38/155138992343374995733203441497734835019.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 7024,
+                                "width": 8243,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/15/51/38/155138992343374995733203441497734835019.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456550/canvas/p6",
+            "type": "Canvas",
+            "height": 6598,
+            "width": 4208,
+            "label": {
+                "none": [
+                    "44.NE.back"
+                ]
+            },
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456550/page/p6/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456550-6-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456550/canvas/p6",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/12/88/46/12884654219991441863292235843445223649.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6598,
+                                "width": 4208,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/12/88/46/12884654219991441863292235843445223649.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456550/canvas/p7",
+            "type": "Canvas",
+            "height": 6879,
+            "width": 8214,
+            "label": {
+                "none": [
+                    "44.W"
+                ]
+            },
+            "metadata": [
+                {
+                    "label": {
+                        "en": [
+                            "herzien"
+                        ]
+                    },
+                    "value": {
+                        "en": [
+                            "1938"
+                        ]
+                    }
+                },
+                {
+                    "label": {
+                        "en": [
+                            "bijgewerkt"
+                        ]
+                    },
+                    "value": {
+                        "en": [
+                            "1941"
+                        ]
+                    }
+                }
+            ],
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456550/page/p7/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456550-7-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456550/canvas/p7",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/45/57/21/45572103807062150213545734027973957620.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6879,
+                                "width": 8214,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/45/57/21/45572103807062150213545734027973957620.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456550/canvas/p8",
+            "type": "Canvas",
+            "height": 6894,
+            "width": 8229,
+            "label": {
+                "none": [
+                    "44.W.back"
+                ]
+            },
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456550/page/p8/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456550-8-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456550/canvas/p8",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/14/33/08/143308602795066101565115902184898569591.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6894,
+                                "width": 8229,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/14/33/08/143308602795066101565115902184898569591.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456550/canvas/p9",
+            "type": "Canvas",
+            "height": 6627,
+            "width": 8205,
+            "label": {
+                "none": [
+                    "45.W"
+                ]
+            },
+            "metadata": [
+                {
+                    "label": {
+                        "en": [
+                            "verkend"
+                        ]
+                    },
+                    "value": {
+                        "en": [
+                            "1943.1944"
+                        ]
+                    }
+                },
+                {
+                    "label": {
+                        "en": [
+                            "bijgewerkt"
+                        ]
+                    },
+                    "value": {
+                        "en": [
+                            "1949"
+                        ]
+                    }
+                }
+            ],
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456550/page/p9/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456550-9-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456550/canvas/p9",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/14/89/40/148940471961223624005150845018906184393.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6627,
+                                "width": 8205,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/14/89/40/148940471961223624005150845018906184393.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456550/canvas/p10",
+            "type": "Canvas",
+            "height": 6648,
+            "width": 8193,
+            "label": {
+                "none": [
+                    "45.E"
+                ]
+            },
+            "metadata": [
+                {
+                    "label": {
+                        "en": [
+                            "verkend"
+                        ]
+                    },
+                    "value": {
+                        "en": [
+                            "1947"
+                        ]
+                    }
+                }
+            ],
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456550/page/p10/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456550-10-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456550/canvas/p10",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/16/25/31/162531712401751313848200665935064407225.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6648,
+                                "width": 8193,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/16/25/31/162531712401751313848200665935064407225.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456550/canvas/p11",
+            "type": "Canvas",
+            "height": 6673,
+            "width": 8432,
+            "label": {
+                "none": [
+                    "48.W"
+                ]
+            },
+            "metadata": [
+                {
+                    "label": {
+                        "en": [
+                            "herzien"
+                        ]
+                    },
+                    "value": {
+                        "en": [
+                            "1943"
+                        ]
+                    }
+                },
+                {
+                    "label": {
+                        "en": [
+                            "bijgewerkt"
+                        ]
+                    },
+                    "value": {
+                        "en": [
+                            "1949"
+                        ]
+                    }
+                }
+            ],
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456550/page/p11/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456550-11-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456550/canvas/p11",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/13/76/67/137667525268051801696486019397162342859.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6673,
+                                "width": 8432,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/13/76/67/137667525268051801696486019397162342859.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456550/canvas/p12",
+            "type": "Canvas",
+            "height": 6716,
+            "width": 8237,
+            "label": {
+                "none": [
+                    "48.E"
+                ]
+            },
+            "metadata": [
+                {
+                    "label": {
+                        "en": [
+                            "herzien"
+                        ]
+                    },
+                    "value": {
+                        "en": [
+                            "1944"
+                        ]
+                    }
+                },
+                {
+                    "label": {
+                        "en": [
+                            "bijgewerkt"
+                        ]
+                    },
+                    "value": {
+                        "en": [
+                            "1948"
+                        ]
+                    }
+                }
+            ],
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456550/page/p12/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456550-12-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456550/canvas/p12",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/14/41/15/144115631223269336049452207574204625033.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6716,
+                                "width": 8237,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/14/41/15/144115631223269336049452207574204625033.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456550/canvas/p13",
+            "type": "Canvas",
+            "height": 6687,
+            "width": 8210,
+            "label": {
+                "none": [
+                    "49.W"
+                ]
+            },
+            "metadata": [
+                {
+                    "label": {
+                        "en": [
+                            "herzien"
+                        ]
+                    },
+                    "value": {
+                        "en": [
+                            "1939"
+                        ]
+                    }
+                },
+                {
+                    "label": {
+                        "en": [
+                            "bijgewerkt"
+                        ]
+                    },
+                    "value": {
+                        "en": [
+                            "1941"
+                        ]
+                    }
+                }
+            ],
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456550/page/p13/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456550-13-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456550/canvas/p13",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/77/03/30/77033004457058371054349095978100951327.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6687,
+                                "width": 8210,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/77/03/30/77033004457058371054349095978100951327.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456550/canvas/p14",
+            "type": "Canvas",
+            "height": 6843,
+            "width": 8195,
+            "label": {
+                "none": [
+                    "49.E"
+                ]
+            },
+            "metadata": [
+                {
+                    "label": {
+                        "en": [
+                            "herzien"
+                        ]
+                    },
+                    "value": {
+                        "en": [
+                            "1953"
+                        ]
+                    }
+                }
+            ],
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456550/page/p14/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456550-14-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456550/canvas/p14",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/14/45/00/144500426657554544501477818858326645406.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6843,
+                                "width": 8195,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/14/45/00/144500426657554544501477818858326645406.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456550/canvas/p15",
+            "type": "Canvas",
+            "height": 6626,
+            "width": 8187,
+            "label": {
+                "none": [
+                    "51.W"
+                ]
+            },
+            "metadata": [
+                {
+                    "label": {
+                        "en": [
+                            "herzien"
+                        ]
+                    },
+                    "value": {
+                        "en": [
+                            "1947"
+                        ]
+                    }
+                }
+            ],
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456550/page/p15/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456550-15-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456550/canvas/p15",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/20/05/50/20055032209123255175183890972040923862.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6626,
+                                "width": 8187,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/20/05/50/20055032209123255175183890972040923862.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456550/canvas/p16",
+            "type": "Canvas",
+            "height": 6633,
+            "width": 8191,
+            "label": {
+                "none": [
+                    "51.E"
+                ]
+            },
+            "metadata": [
+                {
+                    "label": {
+                        "en": [
+                            "herzien"
+                        ]
+                    },
+                    "value": {
+                        "en": [
+                            "1949"
+                        ]
+                    }
+                }
+            ],
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456550/page/p16/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456550-16-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456550/canvas/p16",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/10/79/78/107978940108010189227501936590903012696.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6633,
+                                "width": 8191,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/10/79/78/107978940108010189227501936590903012696.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

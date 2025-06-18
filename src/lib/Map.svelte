@@ -1,43 +1,29 @@
 <script>
   import maplibre from 'maplibre-gl';
   import { WarpedMapLayer } from '@allmaps/maplibre'
+
   import HoveredMap from './HoveredMap.svelte';
   import LayersPanel from './LayersPanel.svelte';
 
   import { mapStore } from '../stores/mapStore.svelte';
-  import * as WSK from '../stores/waterstaatskaarten.svelte';
+  import { WSK } from '../stores/waterstaatskaarten.svelte';
 
 	import { timelineStore } from '../stores/timelineStore.svelte';
-  import { getIIIFMetadata  } from '../stores/iiif-metadata.svelte';
 	import SheetOverlayNew from './SheetOverlayNew.svelte';
+	import { set } from 'ol/transform';
 
   let map;
-
-  const editions = [1,2,3,4,5].map(i => `editie_${i}`);
-  const annotationUrls = Object.fromEntries(editions.map(edition => 
-    [edition, `https://raw.githubusercontent.com/bmmeijers/iiif-annotations/refs/heads/develop/series/waterstaatskaart/uu/${edition}/latest.json`]
-  ));
-
-  const waterStaatsKaartLayers = mapStore.warpedMapLayers;
-  for(let ed of editions) 
-    waterStaatsKaartLayers[ed] = new WarpedMapLayer(ed);
-
+  let waterStaatsKaarten; 
 
   $effect(() => { 
     if(!map) map = initMap(); 
     if(!mapStore.loaded) return;
 
-    for(let layerId in mapStore.visibleLayers) {
-      setLayerVisibility(layerId, !!mapStore.visibleLayers[layerId])
-    }
-
     setBaseMapVisibility(mapStore.showBaseMap)
     setLabelVisibility(mapStore.showLabels)
     setWaterVisibility(mapStore.showWater)
 
-    setTimeout(() => console.log(mapStore.metadata), 500);
-
-    if(timelineStore.hoveredMap) {
+    if(timelineStore.hoveredMap && timelineStore.hoveredMap.visible) {
       showWarpedMapOutline(timelineStore.hoveredMap.geoMask);
 
       const unprojected = map.unproject({ x: timelineStore.hoverX, y: timelineStore.hoverY });
@@ -66,28 +52,13 @@
       preserveDrawingBuffer: true // TODO: is this a requirement for allmaps?
     });
 
-    ['editie_1', 'editie_2', 'editie_3','editie_4','editie_5'].forEach((edition) =>
-      fetch(`/metadata-${edition}.json`)
-        .then((response) => response.json())
-        .then(data => { mapStore.metadata[edition] = data })
-        .catch(error => console.error(`Error fetching ${edition}.json:`, error))
-    );
-
     m.on('load', () => {
       mapStore.loaded = true;
-      mapStore.mapToScreen = (x,y) => map.project([x,y]);
-
-      Object.values(waterStaatsKaartLayers).forEach(layer => {
-        m.addLayer(layer);
-        setLayerVisibility(layer.id, mapStore.visibleLayers[layer.id]);
-      });
+      waterStaatsKaarten = mapStore.waterStaatsKaarten = new WSK(m);
   
-      loadAnnotations();
       initWarpedMapHighlight();
       initWarpedMapFullHighlight();
       initLineToUIElement();
-
-      WSK.loadMetadata().then(i => console.log(mapStore.metadata));
 
       // m.addSource('dsm-05', {
       //   type: 'raster',
@@ -113,21 +84,20 @@
     m.on('click', onpointerclick);
     m.on('mousemove', onpointermove);
     m.on('mouseout', onmouseout);
-    // m.on('idle', () => { m.triggerRepaint() })
+    m.on('idle', () => { m.triggerRepaint() })
     m.on('move', () => {
+      // resetHoveredMap();
       if(mapStore.hoveredMap) setHoveredMap(mapStore.hoveredMap)
     })
 
-    return m;
-  }
+    m.on('zoomend', e => {
+      const zoom = m.getZoom();
+      if(zoom < 9) {
+        if(performance.now() - selectedMapTime > 2500) resetSelectedMap();
+      }
+    })
 
-  function loadAnnotations() {
-    for(let ed of editions) {
-      fetch(annotationUrls[ed])
-        .then(response => response.json())
-        .then(data => waterStaatsKaartLayers[ed].addGeoreferenceAnnotation(data))
-        .catch(error => console.error('Error loading annotations:', error));
-    }
+    return m;
   }
 
   function exportMapAsPNG(filename = 'map.png') {
@@ -163,7 +133,7 @@
       map.moveLayer(layer.id, visible ? 'water' : (mapStore.showLabels ? 'watername_ocean' : undefined));
     });
     map.setPaintProperty('water', 'fill-color', visible ? '#b0d0d6' : 'rgb(210,201,176)');
-    map.setPaintProperty('water_shadow', 'fill-color', visible ? 'rgba(203, 225, 228, 1)' : 'rgb(230,221,196)');
+    map.setPaintProperty('water_shadow', 'fill-color', visible ? 'rgba(159, 203, 227, 1)' : 'rgb(159, 203, 227)');
   }
 
   function warpedMapAt(lng,lat) {
@@ -375,32 +345,11 @@
   }
 
   function onpointerclick(e) {
-    const warpedMap = warpedMapAt(e.lngLat.lng, e.lngLat.lat);
-    console.log(warpedMap);
+    let warpedMap = waterStaatsKaarten.getMapsByGeoPosition(e.lngLat.lng, e.lngLat.lat);
+    if(warpedMap) warpedMap = warpedMap[0];
 
     if(mapStore.loaded && warpedMap) {
-      const bounds = new maplibre.LngLatBounds();
-      warpedMap.geoMask.coordinates[0].forEach(coord => bounds.extend(coord));
-      map.fitBounds(bounds, { padding: 200 });
-
-      // mapStore.selectedMap = warpedMap;
-      const layer = getLayerOfWarpedMap(warpedMap);
-      if(layer) {
-        layer.bringMapsToFront([warpedMap.mapId]);
-        const { width, height } = warpedMap.georeferencedMap.resource;
-
-        layer.setMapResourceMask(warpedMap.mapId, [[0,height], [width,height], [width,0], [0,0]]);
-        warpedMap.updateTriangulation(true);
-        // map.triggerRepaint();
-        // warpedMap.georeferencedMap.resourceMask[0][0] = 0;
-        // warpedMap.georeferencedMap.resourceMask[0][1] = 10000;
-        // warpedMap.georeferencedMap.resourceMask[1][0] = 10000;
-        // warpedMap.georeferencedMap.resourceMask[1][1] = 10000;
-        // warpedMap.georeferencedMap.resourceMask[2][0] = 10000;
-        // warpedMap.georeferencedMap.resourceMask[2][1] = 0;
-        // warpedMap.georeferencedMap.resourceMask[3][0] = 0;
-        // warpedMap.georeferencedMap.resourceMask[3][1] = 0;
-      }
+      setSelectedMap(warpedMap);
     }
   }
 
@@ -410,25 +359,53 @@
   let hoverTimeout = null;
   let hoverTimeoutLonger = null;
 
+  let selectedMapTime = null;
+  let selectedMapZIndex = null;
+  let selectedMapResourceMask = null;
+
+  function setSelectedMap(warpedMap) {
+    if(!mapStore.waterStaatsKaarten) return;
+
+    mapStore.selectedMap = warpedMap;
+    console.log('selected map: ', warpedMap);
+
+    const bounds = new maplibre.LngLatBounds();
+    warpedMap.mask.coordinates[0].forEach(coord => bounds.extend(coord));
+    map.fitBounds(bounds, { padding: 200 });
+
+    // mapStore.selectedMap = warpedMap;
+    const layer = mapStore.waterStaatsKaarten.layer;
+    console.log(layer);
+
+    selectedMapTime = performance.now();
+    selectedMapZIndex = layer.renderer.warpedMapList.zIndices.get(warpedMap.id);
+    selectedMapResourceMask = warpedMap.warpedMap.resourceMask;
+    layer.bringMapsToFront([warpedMap.id]);
+    const { width, height } = warpedMap.warpedMap.georeferencedMap.resource;
+    layer.setMapResourceMask(warpedMap.id, [[0,height], [width,height], [width,0], [0,0]]);
+    warpedMap.warpedMap.updateTriangulation(true);
+  }
+
+  function resetSelectedMap() {
+    if(!mapStore.waterStaatsKaarten || !mapStore.selectedMap) return;
+
+    const layer = mapStore.waterStaatsKaarten.layer;
+    
+    layer.setMapResourceMask(mapStore.selectedMap.id, selectedMapResourceMask);
+    mapStore.selectedMap.warpedMap.updateTriangulation(true);
+    mapStore.selectedMap = null;
+  }
+
   function setHoveredMap(warpedMap) {
-    showWarpedMapOutline(warpedMap.geoMask);
+    if(mapStore.selectedMap) return;
+    showWarpedMapOutline(warpedMap.mask);
     // showWarpedMapFullOutline(warpedMap.geoFullMask);
     mapStore.hoveredMap = warpedMap;
-
-    const edition = Object.keys(mapStore.metadata).find(edition => 
-      mapStore.metadata[edition].find(m => m.mapId == warpedMap.mapId)
-    )
-    const title = mapStore.metadata[edition].find(m => m.mapId == warpedMap.mapId).titel;
-    mapStore.hoveredMapTitle = title;
-    const year = mapStore.metadata[edition].find(m => m.mapId == warpedMap.mapId);
-    mapStore.hoveredMapYear = +year.bw || +year.hz;
-
-    mapStore.hoveredMapMask = warpedMap.geoMask.coordinates[0].slice(0,4).map(i => map.project(i));
+    mapStore.hoveredMapMask = warpedMap.mask.coordinates[0].slice(0,4).map(i => map.project(i));
   }
 
   function resetHoveredMap() {
     mapStore.hoveredMap = null;
-    mapStore.hoveredMapTitle = null;
     hideWarpedMapOutline();
     hideWarpedMapFullOutline();
     clearTimeout(hoverTimeout);
@@ -439,14 +416,16 @@
     mapStore.pointerScreenPos.x = e.point.x;
     mapStore.pointerScreenPos.y = e.point.y;
 
-    const warpedMap = warpedMapAt(e.lngLat.lng, e.lngLat.lat);
+    let warpedMap = waterStaatsKaarten.getMapsByGeoPosition(e.lngLat.lng, e.lngLat.lat);
+    if(warpedMap) warpedMap = warpedMap[0];
+
     if(warpedMap != lastHoveredMap) { 
       resetHoveredMap();
       if(warpedMap) hoverTimeout = setTimeout(() => {
         setHoveredMap(warpedMap);
       }, hoverTime);
       if(warpedMap) hoverTimeoutLonger = setTimeout(() => {
-        showWarpedMapFullOutline(warpedMap.geoFullMask);
+        showWarpedMapFullOutline(warpedMap.warpedMap.geoFullMask);
       }, hoverTimeLonger)
     }
     lastHoveredMap = warpedMap;
@@ -486,13 +465,19 @@
 
 <div id="map"></div>
 
+{#if waterStaatsKaarten && !waterStaatsKaarten.loaded}
+<div id="loading-screen" class="fixed w-full h-full z-5000 bg-[#fff] text-center">
+  Loading...
+</div>
+{/if}
+
 {#if mapStore.loaded}
   <LayersPanel/>
 {/if}
 
-{#if mapStore.selectedMap}
+<!-- {#if mapStore.selectedMap}
   <SheetOverlayNew></SheetOverlayNew>
-{/if}
+{/if} -->
 
 {#if mapStore.hoveredMap}
   <HoveredMap></HoveredMap>

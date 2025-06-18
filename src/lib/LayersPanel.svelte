@@ -33,7 +33,7 @@
     transition: all .3s;
   }
   .layerspanel:hover {
-    background: #fff;
+    background: #ffffff;
     margin-left: 20px;
     outline: 2px solid #00000022;
     outline-offset: 0px;

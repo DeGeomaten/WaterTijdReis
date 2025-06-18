@@ -48,11 +48,14 @@
 		"@allmaps/maplibre": "^1.0.0-beta.30",
 		"@allmaps/render": "1.0.0-beta.68",
 		"@fortawesome/fontawesome-free": "^6.7.2",
+		"@turf/turf": "^7.2.0",
 		"bits-ui": "^2.2.0",
 		"clsx": "^2.1.1",
 		"feather-icons": "^4.29.2",
 		"maplibre-gl": "^5.3.0",
 		"ol": "^10.4.0",
+		"poly2tri": "^1.5.0",
+		"rtree": "^1.4.2",
 		"svelte-toolbelt": "^0.9.1",
 		"tailwindcss-animate": "^1.0.7"
 	}
