@@ -202,7 +202,7 @@
 <style>
 	.layerspanel {
 		position: absolute;
-		top: 100px;
+		top: 130px;
 		left: 0;
 		margin: 10px;
 		padding: 15px;
