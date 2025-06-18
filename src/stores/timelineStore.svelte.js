@@ -4,5 +4,7 @@ export const timelineStore = $state({
     horizontal: true,
     hoveredMap: null,
     hoverX: 0,
-    hoverY: 0
+    hoverY: 0,
+    startYear: 1850,
+    endYear: 2000,
 });

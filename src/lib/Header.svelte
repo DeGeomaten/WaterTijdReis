@@ -1,12 +1,15 @@
 <link rel="stylesheet" href="https://use.typekit.net/dwr8fxs.css">
 <script lang="ts">
-    import { onMount } from 'svelte';
-    import feather from 'feather-icons';
-    import { goto } from '$app/navigation';
-    import { page } from '$app/stores';
     import AboutPage from '$lib/AboutPage.svelte';
+    import MagnifyingGlass from 'phosphor-svelte/lib/MagnifyingGlass';
+    import Export from 'phosphor-svelte/lib/Export';
+    import MapTrifold from 'phosphor-svelte/lib/MapTrifold';
+    import ArrowElbowDownLeft from 'phosphor-svelte/lib/ArrowElbowDownLeft';
+
+    import Geocoder from './Geocoder.svelte';
   
-    let searchQuery = "";
+    let searchQuery = $state("");
+    let searchAutofill = $state("");
     let showAboutPage = false;
 
     function share() {
@@ -16,10 +19,27 @@
     function toggleAboutPage() {
       showAboutPage = !showAboutPage;
     }
-  
-    onMount(() => {
-      feather.replace();
-    });
+
+    async function handleSearch(query) {
+      searchQuery = query;
+      const bboxNL = [3.358, 50.750, 7.227, 53.631];
+      const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(searchQuery)}&lang=en&bbox=${bboxNL.join(',')}`);
+      const data = await res.json();
+
+      if (data.features.length > 0) {
+        console.log(data.features[0]);
+        const feature = data.features[0];
+        if(feature.properties.housenumber) searchAutofill = feature.properties.street + " " + feature.properties.housenumber + ", " + feature.properties.city;
+        // else if(feature.properties.city) searchAutofill = feature.properties.city + ", ";
+        else if(feature.properties.name) searchAutofill = data.features[0].properties.name + ", " + data.features[0].properties.state + ", ";
+      } else searchAutofill = "";
+    }
+
+    $effect(() => {
+      if(searchQuery) {
+        handleSearch(searchQuery);
+      }
+    })
   </script>
   
   <style>
@@ -50,6 +70,15 @@
       font-size: 16px;
       background: #ffffffff;
       outline: 2px solid #4466ff22;
+      border-radius: 4px;
+      transition: width .2s;
+    }
+
+    .autofill {
+      width: 200px;
+      padding: 8px;
+      font-size: 12px;
+      background: #ffffffff;
       border-radius: 4px;
       transition: width .2s;
     }
@@ -107,14 +136,21 @@
   </style>
   
   <div class="header">
-    <div class="search-bar-container">
+    <div class="relative search-bar-container">
       <input
       type="text"
       bind:value={searchQuery}
       placeholder="Zoek op de kaart"
       class="search-bar"
       />
-      <i data-feather="search" style="position: relative; right: 30px;" class="icon size-4"></i>
+      <MagnifyingGlass class="icon size-4 relative right-[25px]" />
+
+      {#if searchAutofill}
+        <div class="autofill absolute left-1 top-12 opacity-75">
+          {searchAutofill}
+          <ArrowElbowDownLeft class="icon size-4 absolute right-4 top-2"></ArrowElbowDownLeft>
+        </div>
+      {/if}
     </div>
   
     <div class="logo">
@@ -159,10 +195,10 @@
   
     <div class="buttons">
       <button class="button" on:click={toggleAboutPage}>
-        <i data-feather="map" class="icon size-4"></i> Over WaterTijdReis
+        <MapTrifold class="icon size-4 relative right-[5px]"></MapTrifold> Over WaterTijdReis
       </button>
       <button class="button" on:click={share}>
-        <i data-feather="share" class="icon size-4"></i> Deel
+        <Export class="icon size-4 relative right-[5px]"></Export> Deel
       </button>
     </div>
   </div>

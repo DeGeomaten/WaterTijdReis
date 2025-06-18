@@ -1,0 +1,532 @@
+{
+    "@context": "http://iiif.io/api/presentation/3/context.json",
+    "id": "https://tu-delft-heritage.github.io/watertijdreis-data/manifests/06-1874-456552/manifest.json",
+    "type": "Manifest",
+    "label": {
+        "none": [
+            "Waterstaatskaart van Nederland, 3e editie BIS *VII*.B.a.795 (Dk36-13)"
+        ]
+    },
+    "metadata": [
+        {
+            "label": {
+                "none": [
+                    "Title"
+                ]
+            },
+            "value": {
+                "none": [
+                    "Waterstaatskaart van Nederland"
+                ]
+            }
+        },
+        {
+            "label": {
+                "none": [
+                    "Published"
+                ]
+            },
+            "value": {
+                "none": [
+                    "1963"
+                ]
+            }
+        },
+        {
+            "label": {
+                "none": [
+                    "Format"
+                ]
+            },
+            "value": {
+                "none": [
+                    "Map"
+                ]
+            }
+        }
+    ],
+    "summary": {
+        "none": [
+            "Summary not supplied"
+        ]
+    },
+    "requiredStatement": {
+        "label": {
+            "en": [
+                "Attribution"
+            ]
+        },
+        "value": {
+            "en": [
+                "University Utrecht Library - Special Collections "
+            ]
+        }
+    },
+    "rendering": [
+        {
+            "id": "https://objects.library.uu.nl/reader/index.php?obj=1874-456552",
+            "type": "Text",
+            "label": {
+                "none": [
+                    "View at University Utrecht Library"
+                ]
+            }
+        },
+        {
+            "id": "https://objects.library.uu.nl/reader/ftxt.php?obj=1874-456552&format=1&pagenum=1",
+            "type": "Text",
+            "format": "application/pdf",
+            "label": {
+                "none": [
+                    "Download as PDF"
+                ]
+            }
+        },
+        {
+            "id": "https://www.worldcat.org/oclc/1450555066",
+            "type": "Text",
+            "label": {
+                "none": [
+                    "View in WorldCat catalogue"
+                ]
+            }
+        }
+    ],
+    "homepage": [
+        {
+            "id": "http://localhost:7111/manifests/content/iiif-manifests/1874-456552",
+            "type": "ContentResource"
+        }
+    ],
+    "items": [
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456552/canvas/p1",
+            "type": "Canvas",
+            "height": 6668,
+            "width": 8210,
+            "label": {
+                "none": [
+                    "1"
+                ]
+            },
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456552/page/p1/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456552-1-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456552/canvas/p1",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/43/56/12/43561200595562341359320987062638413547.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6668,
+                                "width": 8210,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/43/56/12/43561200595562341359320987062638413547.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456552/canvas/p2",
+            "type": "Canvas",
+            "height": 6640,
+            "width": 8200,
+            "label": {
+                "none": [
+                    "2"
+                ]
+            },
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456552/page/p2/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456552-2-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456552/canvas/p2",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/31/79/02/31790285657538421446489960339972803558.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6640,
+                                "width": 8200,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/31/79/02/31790285657538421446489960339972803558.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456552/canvas/p3",
+            "type": "Canvas",
+            "height": 6625,
+            "width": 8211,
+            "label": {
+                "none": [
+                    "3"
+                ]
+            },
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456552/page/p3/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456552-3-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456552/canvas/p3",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/60/53/26/60532626183453506748604616101573541830.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6625,
+                                "width": 8211,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/60/53/26/60532626183453506748604616101573541830.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456552/canvas/p4",
+            "type": "Canvas",
+            "height": 6662,
+            "width": 8210,
+            "label": {
+                "none": [
+                    "4"
+                ]
+            },
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456552/page/p4/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456552-4-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456552/canvas/p4",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/15/74/20/157420614073222056875421357038624947733.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6662,
+                                "width": 8210,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/15/74/20/157420614073222056875421357038624947733.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456552/canvas/p5",
+            "type": "Canvas",
+            "height": 6126,
+            "width": 7814,
+            "label": {
+                "none": [
+                    "5"
+                ]
+            },
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456552/page/p5/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456552-5-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456552/canvas/p5",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/11/95/81/119581173561749320589779029235286907978.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6126,
+                                "width": 7814,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/11/95/81/119581173561749320589779029235286907978.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456552/canvas/p6",
+            "type": "Canvas",
+            "height": 6112,
+            "width": 10724,
+            "label": {
+                "none": [
+                    "6"
+                ]
+            },
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456552/page/p6/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456552-6-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456552/canvas/p6",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/58/05/29/58052909872335529309818568500893793745.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6112,
+                                "width": 10724,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/58/05/29/58052909872335529309818568500893793745.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456552/canvas/p7",
+            "type": "Canvas",
+            "height": 6116,
+            "width": 7843,
+            "label": {
+                "none": [
+                    "7"
+                ]
+            },
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456552/page/p7/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456552-7-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456552/canvas/p7",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/65/66/75/65667545748625989932958952653688311080.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6116,
+                                "width": 7843,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/65/66/75/65667545748625989932958952653688311080.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456552/canvas/p8",
+            "type": "Canvas",
+            "height": 6654,
+            "width": 8200,
+            "label": {
+                "none": [
+                    "8"
+                ]
+            },
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456552/page/p8/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456552-8-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456552/canvas/p8",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/10/37/63/103763245309706947318034628960664825013.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6654,
+                                "width": 8200,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/10/37/63/103763245309706947318034628960664825013.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456552/canvas/p9",
+            "type": "Canvas",
+            "height": 6636,
+            "width": 8202,
+            "label": {
+                "none": [
+                    "9"
+                ]
+            },
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456552/page/p9/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456552-9-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456552/canvas/p9",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/78/49/44/78494455539174727458001641469421992770.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6636,
+                                "width": 8202,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/78/49/44/78494455539174727458001641469421992770.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456552/canvas/p10",
+            "type": "Canvas",
+            "height": 6655,
+            "width": 8229,
+            "label": {
+                "none": [
+                    "10"
+                ]
+            },
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456552/page/p10/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456552-10-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456552/canvas/p10",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/40/45/15/40451512963076829464303102861526586681.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6655,
+                                "width": 8229,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/40/45/15/40451512963076829464303102861526586681.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "https://objects.library.uu.nl/iiif_manifest/1874-456552/canvas/p11",
+            "type": "Canvas",
+            "height": 6650,
+            "width": 8209,
+            "label": {
+                "none": [
+                    "11"
+                ]
+            },
+            "items": [
+                {
+                    "id": "https://objects.library.uu.nl/iiif_manifest/1874-456552/page/p11/1",
+                    "type": "AnnotationPage",
+                    "items": [
+                        {
+                            "id": "https://objects.library.uu.nl/iiif_manifest/annotation/1874-456552-11-image",
+                            "type": "Annotation",
+                            "motivation": "painting",
+                            "target": "https://objects.library.uu.nl/iiif_manifest/1874-456552/canvas/p11",
+                            "body": {
+                                "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/82/55/34/82553438786450597629360008962109637596.jp2/full/full/0/default.jpg",
+                                "type": "Image",
+                                "format": "image/jpeg",
+                                "height": 6650,
+                                "width": 8209,
+                                "service": [
+                                    {
+                                        "id": "https://objects.library.uu.nl/fcgi-bin/iipsrv.fcgi?IIIF=/manifestation/viewer/82/55/34/82553438786450597629360008962109637596.jp2",
+                                        "type": "ImageService3",
+                                        "profile": "level1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

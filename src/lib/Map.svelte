@@ -2,36 +2,28 @@
   import maplibre from 'maplibre-gl';
   import { WarpedMapLayer } from '@allmaps/maplibre'
 
+  import HoveredMap from './HoveredMap.svelte';
   import LayersPanel from './LayersPanel.svelte';
 
-  import { getIIIFMetadata  } from '../stores/iiif-metadata.svelte';
   import { mapStore } from '../stores/mapStore.svelte';
+  import { WSK } from '../stores/waterstaatskaarten.svelte';
+
 	import { timelineStore } from '../stores/timelineStore.svelte';
+	import SheetOverlayNew from './SheetOverlayNew.svelte';
+	import { set } from 'ol/transform';
 
   let map;
-
-  const editions = [1,2,3,4,5].map(i => `editie_${i}`);
-  const annotationUrls = Object.fromEntries(editions.map(edition => 
-    [edition, `https://raw.githubusercontent.com/bmmeijers/iiif-annotations/refs/heads/develop/series/waterstaatskaart/uu/${edition}/latest.json`]
-  ));
-
-  const waterStaatsKaartLayers = mapStore.warpedMapLayers;
-  for(let ed of editions) 
-    waterStaatsKaartLayers[ed] = new WarpedMapLayer(ed);
-
+  let waterStaatsKaarten; 
 
   $effect(() => { 
     if(!map) map = initMap(); 
     if(!mapStore.loaded) return;
 
-    for(let layerId in mapStore.visibleLayers) {
-      setLayerVisibility(layerId, !!mapStore.visibleLayers[layerId])
-    }
-
+    setBaseMapVisibility(mapStore.showBaseMap)
     setLabelVisibility(mapStore.showLabels)
     setWaterVisibility(mapStore.showWater)
 
-    if(timelineStore.hoveredMap) {
+    if(timelineStore.hoveredMap && timelineStore.hoveredMap.visible) {
       showWarpedMapOutline(timelineStore.hoveredMap.geoMask);
 
       const unprojected = map.unproject({ x: timelineStore.hoverX, y: timelineStore.hoverY });
@@ -45,63 +37,89 @@
           ]
         ]
       });
-    } else { hideWarpedMapOutline(); hideLineToUIElement(); }
+    } else { hideWarpedMapOutline(); hideWarpedMapFullOutline(); hideLineToUIElement(); }
   });
 
   function initMap() {
     const m = new maplibre.Map({
       container: 'map',
       style: 'style.json',
+      crossSourceCollisions: false,
+      attributionControl: false,
       center: [4.55,52.23],
       zoom: 6,
       maxPitch: 0,
       preserveDrawingBuffer: true // TODO: is this a requirement for allmaps?
     });
 
-    ['editie_1', 'editie_2', 'editie_3'].forEach((edition) =>
-      fetch(`/metadata-${edition}.json`)
-        .then((response) => response.json())
-        .then(data => { mapStore.metadata[edition] = data })
-        .catch(error => console.error(`Error fetching ${edition}.json:`, error))
-    );
-
     m.on('load', () => {
       mapStore.loaded = true;
-
-      Object.values(waterStaatsKaartLayers).forEach(layer => {
-        m.addLayer(layer);
-        setLayerVisibility(layer.id, mapStore.visibleLayers[layer.id]);
-      });
+      waterStaatsKaarten = mapStore.waterStaatsKaarten = new WSK(m);
   
-      loadAnnotations();
       initWarpedMapHighlight();
+      initWarpedMapFullHighlight();
       initLineToUIElement();
 
-      setInterval(() => {
-        mapStore.warpedMapsInViewport = Array.from(waterStaatsKaartLayers['editie_3'].renderer.mapsInViewport)
-          .map(id => waterStaatsKaartLayers['editie_3'].renderer.warpedMapList.warpedMapsById.get(id))
-      }, 500);
+      // m.addSource('dsm-05', {
+      //   type: 'raster',
+      //   tiles: [
+      //     'https://service.pdok.nl/rws/ahn/wms/v1_0?REQUEST=GetMap&SERVICE=WMS&VERSION=1.3.0&FORMAT=image/png&STYLES=&TRANSPARENT=TRUE&LAYERS=dsm_05m&TILED=true&WIDTH=256&HEIGHT=256&CRS=EPSG:3857&BBOX={bbox-epsg-3857}'
+      //   ],
+      //   tileSize: 256
+      // });
+
+      // m.addLayer({
+      //   id: 'dsm-05-layer',
+      //   type: 'raster',
+      //   source: 'dsm-05',
+      //   paint: {}
+      // });
+
+      // setInterval(() => {
+      //   mapStore.warpedMapsInViewport = Array.from(waterStaatsKaartLayers['editie_3'].renderer.mapsInViewport)
+      //     .map(id => waterStaatsKaartLayers['editie_3'].renderer.warpedMapList.warpedMapsById.get(id))
+      // }, 500);
     });
 
     m.on('click', onpointerclick);
     m.on('mousemove', onpointermove);
     m.on('mouseout', onmouseout);
-    // m.on('idle', () => { m.triggerRepaint() })
+    m.on('idle', () => { m.triggerRepaint() })
+    m.on('move', () => {
+      // resetHoveredMap();
+      if(mapStore.hoveredMap) setHoveredMap(mapStore.hoveredMap)
+    })
+
+    m.on('zoomend', e => {
+      const zoom = m.getZoom();
+      if(zoom < 9) {
+        if(performance.now() - selectedMapTime > 2500) resetSelectedMap();
+      }
+    })
 
     return m;
   }
 
-  function loadAnnotations() {
-    for(let ed of editions) {
-      fetch(annotationUrls[ed])
-        .then(response => response.json())
-        .then(data => waterStaatsKaartLayers[ed].addGeoreferenceAnnotation(data))
-        .catch(error => console.error('Error loading annotations:', error));
-    }
+  function exportMapAsPNG(filename = 'map.png') {
+    const canvas = map.getCanvas();
+    const dataURL = canvas.toDataURL('image/png');
+
+    const link = document.createElement('a');
+    link.href = dataURL;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
   
   function setLayerVisibility(layerId, visible) {
     map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none')
+  }
+
+  function setBaseMapVisibility(visible) {
+    map.getStyle().layers.forEach(layer => {
+      map.setLayoutProperty(layer.id, 'visibility',  visible ? 'visible' : 'none');
+    });
   }
 
   function setLabelVisibility(visible) {
@@ -115,7 +133,7 @@
       map.moveLayer(layer.id, visible ? 'water' : (mapStore.showLabels ? 'watername_ocean' : undefined));
     });
     map.setPaintProperty('water', 'fill-color', visible ? '#b0d0d6' : 'rgb(210,201,176)');
-    map.setPaintProperty('water_shadow', 'fill-color', visible ? 'rgba(203, 225, 228, 1)' : 'rgb(230,221,196)');
+    map.setPaintProperty('water_shadow', 'fill-color', visible ? 'rgba(159, 203, 227, 1)' : 'rgb(159, 203, 227)');
   }
 
   function warpedMapAt(lng,lat) {
@@ -127,6 +145,15 @@
         return warpedMapList.warpedMapsById.get(results[0]);
       }
     }
+  }
+
+  function getLayerOfWarpedMap(warpedMap) {
+    for(let layer of Object.values(waterStaatsKaartLayers)) {
+      if(layer.renderer.warpedMapList.warpedMapsById.has(warpedMap.mapId)) {
+        return layer;
+      }
+    }
+    return null;
   }
 
   const MAP_HIGHLIGHT_TRANSITION_DURATION = 500;
@@ -169,6 +196,46 @@
     map.setPaintProperty('warpedmap-highlight-sharp', 'line-opacity-transition', { duration: MAP_HIGHLIGHT_TRANSITION_DURATION, delay: 0 });
     map.setPaintProperty('warpedmap-highlight-glow', 'line-opacity-transition', { duration: MAP_HIGHLIGHT_TRANSITION_DURATION, delay: 0 });
   }
+  function initWarpedMapFullHighlight() {
+    map.addSource('warpedmap-full-highlight', {
+      type: 'geojson',
+      data: {
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [] }
+      }
+    })
+
+    map.addLayer({
+      id: 'warpedmap-full-highlight-glow',
+      type: 'line',
+      source: 'warpedmap-full-highlight',
+      paint: {
+        'line-color': '#fff',
+        'line-width': 4,
+        'line-blur': 4,
+        'line-dasharray': [4, 4]
+      },
+      layout: {
+        visibility: 'none'
+      }
+    });
+    map.addLayer({
+      id: 'warpedmap-full-highlight-sharp',
+      type: 'line',
+      source: 'warpedmap-full-highlight',
+      paint: {
+        'line-color': '#fff',
+        'line-width': 1,
+        'line-dasharray': [4, 4]
+      },
+      layout: {
+        visibility: 'none'
+      }
+    });
+
+    map.setPaintProperty('warpedmap-full-highlight-sharp', 'line-opacity-transition', { duration: MAP_HIGHLIGHT_TRANSITION_DURATION, delay: 0 });
+    map.setPaintProperty('warpedmap-full-highlight-glow', 'line-opacity-transition', { duration: MAP_HIGHLIGHT_TRANSITION_DURATION, delay: 0 });
+  }
 
   function initLineToUIElement() {
     map.addSource('line-to-ui-element', {
@@ -199,12 +266,13 @@
   function showLineToUIElement(lineGeoJson) {
     const source = map.getSource('line-to-ui-element');
     if(!source) return;
-
+    
     source.setData({
       type: 'Feature',
       geometry: lineGeoJson
     });
-
+    
+    map.moveLayer('line-to-ui-element-dashed');
     setLayerVisibility('line-to-ui-element-dashed', true);
     map.setPaintProperty('line-to-ui-element-dashed', 'line-opacity', 1);
   }
@@ -222,12 +290,14 @@
   function showWarpedMapOutline(polygonGeoJson) {
     const source = map.getSource('warpedmap-highlight');
     if(!source) return;
-
+    
     source.setData({
       type: 'Feature',
       geometry: polygonGeoJson
     });
-
+    
+    map.moveLayer('warpedmap-highlight-sharp');
+    map.moveLayer('warpedmap-highlight-glow');
     setLayerVisibility('warpedmap-highlight-sharp', true);
     map.setPaintProperty('warpedmap-highlight-sharp', 'line-opacity', .5);
     setLayerVisibility('warpedmap-highlight-glow', true);
@@ -245,39 +315,124 @@
       }, MAP_HIGHLIGHT_TRANSITION_DURATION)
     }
   }
+  function showWarpedMapFullOutline(polygonGeoJson) {
+    const source = map.getSource('warpedmap-full-highlight');
+    if(!source) return;
+    
+    source.setData({
+      type: 'Feature',
+      geometry: polygonGeoJson
+    });
+    
+    map.moveLayer('warpedmap-full-highlight-sharp');
+    map.moveLayer('warpedmap-full-highlight-glow');
+    setLayerVisibility('warpedmap-full-highlight-sharp', true);
+    map.setPaintProperty('warpedmap-full-highlight-sharp', 'line-opacity', .5);
+    setLayerVisibility('warpedmap-full-highlight-glow', true);
+    map.setPaintProperty('warpedmap-full-highlight-glow', 'line-opacity', 1);
+  }
+
+  function hideWarpedMapFullOutline() {
+    const source = map.getSource('warpedmap-full-highlight');
+    if(source) {
+      map.setPaintProperty('warpedmap-full-highlight-sharp', 'line-opacity', 0);
+      map.setPaintProperty('warpedmap-full-highlight-glow', 'line-opacity', 0);
+      setTimeout(() => {
+        setLayerVisibility('warpedmap-full-highlight-sharp', false);
+        setLayerVisibility('warpedmap-full-highlight-glow', false);
+      }, MAP_HIGHLIGHT_TRANSITION_DURATION)
+    }
+  }
 
   function onpointerclick(e) {
-    const warpedMap = warpedMapAt(e.lngLat.lng, e.lngLat.lat);
-    console.log(warpedMap);
+    let warpedMap = waterStaatsKaarten.getMapsByGeoPosition(e.lngLat.lng, e.lngLat.lat);
+    if(warpedMap) warpedMap = warpedMap[0];
 
     if(mapStore.loaded && warpedMap) {
-      const bounds = new maplibre.LngLatBounds();
-      warpedMap.geoMask.coordinates[0].forEach(coord => bounds.extend(coord));
-      map.fitBounds(bounds, { padding: 200 });
+      setSelectedMap(warpedMap);
     }
   }
 
   let lastHoveredMap = null;
+  let hoverTime = 500;
+  let hoverTimeLonger = 2000;
   let hoverTimeout = null;
+  let hoverTimeoutLonger = null;
+
+  let selectedMapTime = null;
+  let selectedMapZIndex = null;
+  let selectedMapResourceMask = null;
+
+  function setSelectedMap(warpedMap) {
+    if(!mapStore.waterStaatsKaarten) return;
+
+    mapStore.selectedMap = warpedMap;
+    console.log('selected map: ', warpedMap);
+
+    const bounds = new maplibre.LngLatBounds();
+    warpedMap.mask.coordinates[0].forEach(coord => bounds.extend(coord));
+    map.fitBounds(bounds, { padding: 200 });
+
+    // mapStore.selectedMap = warpedMap;
+    const layer = mapStore.waterStaatsKaarten.layer;
+    console.log(layer);
+
+    selectedMapTime = performance.now();
+    selectedMapZIndex = layer.renderer.warpedMapList.zIndices.get(warpedMap.id);
+    selectedMapResourceMask = warpedMap.warpedMap.resourceMask;
+    layer.bringMapsToFront([warpedMap.id]);
+    const { width, height } = warpedMap.warpedMap.georeferencedMap.resource;
+    layer.setMapResourceMask(warpedMap.id, [[0,height], [width,height], [width,0], [0,0]]);
+    warpedMap.warpedMap.updateTriangulation(true);
+  }
+
+  function resetSelectedMap() {
+    if(!mapStore.waterStaatsKaarten || !mapStore.selectedMap) return;
+
+    const layer = mapStore.waterStaatsKaarten.layer;
+    
+    layer.setMapResourceMask(mapStore.selectedMap.id, selectedMapResourceMask);
+    mapStore.selectedMap.warpedMap.updateTriangulation(true);
+    mapStore.selectedMap = null;
+  }
+
+  function setHoveredMap(warpedMap) {
+    if(mapStore.selectedMap) return;
+    showWarpedMapOutline(warpedMap.mask);
+    // showWarpedMapFullOutline(warpedMap.geoFullMask);
+    mapStore.hoveredMap = warpedMap;
+    mapStore.hoveredMapMask = warpedMap.mask.coordinates[0].slice(0,4).map(i => map.project(i));
+  }
+
+  function resetHoveredMap() {
+    mapStore.hoveredMap = null;
+    hideWarpedMapOutline();
+    hideWarpedMapFullOutline();
+    clearTimeout(hoverTimeout);
+    clearTimeout(hoverTimeoutLonger);
+  }
 
   function onpointermove(e) {
-    const warpedMap = warpedMapAt(e.lngLat.lng, e.lngLat.lat);
+    mapStore.pointerScreenPos.x = e.point.x;
+    mapStore.pointerScreenPos.y = e.point.y;
+
+    let warpedMap = waterStaatsKaarten.getMapsByGeoPosition(e.lngLat.lng, e.lngLat.lat);
+    if(warpedMap) warpedMap = warpedMap[0];
+
     if(warpedMap != lastHoveredMap) { 
-      hideWarpedMapOutline(); 
-      clearTimeout(hoverTimeout); 
+      resetHoveredMap();
       if(warpedMap) hoverTimeout = setTimeout(() => {
-        showWarpedMapOutline(warpedMap.geoMask);
-      }, 500);
+        setHoveredMap(warpedMap);
+      }, hoverTime);
+      if(warpedMap) hoverTimeoutLonger = setTimeout(() => {
+        showWarpedMapFullOutline(warpedMap.warpedMap.geoFullMask);
+      }, hoverTimeLonger)
     }
     lastHoveredMap = warpedMap;
   }
 
   function onmouseout(e) {
-    if(lastHoveredMap) {
-      hideWarpedMapOutline();
-      lastHoveredMap = null;
-    }
-    clearTimeout(hoverTimeout);
+    resetHoveredMap();
   }
 </script>
 
@@ -290,10 +445,40 @@
     left: 0;
     z-index: 1;
   }
+
+  .hoveredMapTitle {
+    position: fixed;
+    bottom: 180px;
+    left: 50%;
+    width: 250px;
+    margin-left: -125px;
+    text-align: center;
+    z-index: 100;
+  }
 </style>
+
+<svelte:window onkeydown={
+  e => {
+    if(e.key == 'p') exportMapAsPNG();
+  }
+}></svelte:window>
 
 <div id="map"></div>
 
+{#if waterStaatsKaarten && !waterStaatsKaarten.loaded}
+<div id="loading-screen" class="fixed w-full h-full z-5000 bg-[#fff] text-center">
+  Loading...
+</div>
+{/if}
+
 {#if mapStore.loaded}
   <LayersPanel/>
+{/if}
+
+<!-- {#if mapStore.selectedMap}
+  <SheetOverlayNew></SheetOverlayNew>
+{/if} -->
+
+{#if mapStore.hoveredMap}
+  <HoveredMap></HoveredMap>
 {/if}
