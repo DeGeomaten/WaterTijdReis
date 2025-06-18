@@ -12,7 +12,7 @@
         <Map/>
         <Header/>
     </div>
-    <Filter/>
+    <!-- <Filter/> -->
     <Timeline/>
 </main>
 
