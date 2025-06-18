@@ -195,12 +195,7 @@
 			</label>
 		{/each}
 
-		<button
-			class="shadow-mini hover:border-4-[#ffffff44] mt-[10px] inline-flex h-10 items-center justify-center rounded-[4px] bg-[#224] px-[11px] whitespace-nowrap text-[#fff] outline-2 outline-[#4466ff22] select-none"
-		>
-			<StackPlus class="mr-[10px]" />
-			Laag toevoegen
-		</button>
+		
 	</div>
 </div>
 
@@ -265,6 +260,7 @@
 		left: -10px;
 		opacity: 0;
 		transition: all 0.3s;
+		padding-right: 15px;
 	}
 
 	.layerspanel:hover .description {
@@ -332,6 +328,7 @@
 		transition:
 			opacity 0.3s,
 			transform 0.2s;
+		padding-right: 5px;
 	}
 
 	.layerspanel:hover .drag-handle {
