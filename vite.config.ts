@@ -5,6 +5,12 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
 	plugins: [tailwindcss(), sveltekit()],
+	define: {
+		global: 'globalThis'
+	},
+	server: {
+		hmr: false
+	},
 	test: {
 		workspace: [
 			{

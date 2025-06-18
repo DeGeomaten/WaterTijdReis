@@ -4,7 +4,7 @@
   import { timelineStore } from '../stores/timelineStore.svelte';
 	import { getIIIFMetadata } from '../stores/iiif-metadata.svelte';
 	import { filterStore } from '../stores/filterStore.svelte';
-	import { returnOrUpdate } from 'ol/extent';
+	import { containsXY, returnOrUpdate } from 'ol/extent';
 
   let canvas;
   let ctx;
@@ -17,13 +17,14 @@
 
   let highlightColor = '#f55';
 
-  const LABEL_SPACING = 40;
+  const LABEL_SPACING = 60;
   let mapThumbnailPadding = $state(10);
   let mapThumbnailSize = $derived(timelineStore.size - mapThumbnailPadding * 2 - LABEL_SPACING);
   let maxMapThumbnailAspect = $state(1);
   let mapThumbnailRotation = Math.PI / 32;
   
-  const mapThumbnails = $state(new Map());
+  let mapThumbnails = $state(new Map());
+  let mapThumbnailsById = new Map();
 
 
   const MIN_YEAR = 1800;
@@ -31,14 +32,24 @@
 
   const MAX_RANGE = 1;
 
-  let startYear = $state(MIN_YEAR + 50);
-  let endYear = $state(MAX_YEAR);
-  let pixelsPerYear = $derived(timelineLength / (endYear - startYear));
-
-  let timelineExpanded = false;
+  let pixelsPerYear = $derived(timelineLength / (timelineStore.endYear - timelineStore.startYear));
 
   let timelineBoundsPattern;
   let timelineBoundsPatternOffset = 0;
+
+  let timelineExpanded = false;
+
+  let timelineEditions = { // TODO: not hardcoded
+    'editie_1': { startYear: Infinity, endYear: 0, name: "Editie 1" },
+    'editie_1bis': { startYear: Infinity, endYear: 0, name: "Editie 1 (BIS)" },
+    'editie_2': { startYear: Infinity, endYear: 0, name: "Editie 2" },
+    'editie_2bis': { startYear: Infinity, endYear: 0, name: "Editie 2 (BIS)" },
+    'editie_3': { startYear: Infinity, endYear: 0, name: "Editie 3" },
+    'editie_3bis': { startYear: Infinity, endYear: 0, name: "Editie 3 (BIS)" },
+    'editie_4': { startYear: Infinity, endYear: 0, name: "Editie 4" },
+    'editie_4bis': { startYear: Infinity, endYear: 0, name: "Editie 4 (BIS)" },
+    'editie_5': { startYear: Infinity, endYear: 0, name: "Editie 5" },
+  }
 
   $effect(() => {
     if(!ctx) {
@@ -47,15 +58,15 @@
 
       window.addEventListener('resize', resizeCanvas);
       window.addEventListener('keydown', e => {
-        if(e.key === 't') timelineStore.horizontal = !timelineStore.horizontal;
-        if(e.key === 's') timelineExpanded = !timelineExpanded;
+        // if(e.key === 't') timelineStore.horizontal = !timelineStore.horizontal;
+        // if(e.key === 's') timelineExpanded = !timelineExpanded;
       });
     }
 
     resizeCanvas();
 
     if(!timelineStore.loaded && mapStore.loaded) {
-      setTimeout(initTimeline, 500); // TODO: check if all warped maps are loaded instead
+      setTimeout(initTimeline, 200); // TODO: check if all warped maps are loaded instead
     }
   });
 
@@ -123,17 +134,18 @@
   }
 
   class MapThumbnail {
-    constructor(warpedMap) {
-      this.warpedMap = warpedMap;
-      this.id = warpedMap.mapId;
+    constructor(map) {
+      this.warpedMap = map.warpedMap;
+      this.id = map.id;
+      mapThumbnailsById.set(this.id, this);
 
-      this.imageOriginalWidth = warpedMap.georeferencedMap.resource.width;
-      this.imageOriginalHeight = warpedMap.georeferencedMap.resource.height;
+      this.imageOriginalWidth = this.warpedMap.georeferencedMap.resource.width;
+      this.imageOriginalHeight = this.warpedMap.georeferencedMap.resource.height;
       this.imageAspect = this.imageOriginalWidth / this.imageOriginalHeight;
       if(this.imageAspect > maxMapThumbnailAspect) 
         maxMapThumbnailAspect = this.imageAspect;
       
-      this.imageUrl = warpedMap.georeferencedMap.resource.id + '/full/128,/0/default.jpg';
+      this.imageUrl = this.warpedMap.georeferencedMap.resource.id + '/full/128,/0/default.jpg';
       this.imageLoaded = false;
       this.image = new Image();
       this.image.src = this.imageUrl;
@@ -144,11 +156,10 @@
 
       // find out which edition this map belongs
       // TODO: this should be easier
-      this.edition = Object.keys(mapStore.metadata).find(edition => 
-        mapStore.metadata[edition].find(map => map.mapId == this.id)
-      )
-      this.year = +mapStore.metadata[this.edition].find(map => map.mapId == this.id).hz || mapStore.metadata[this.edition].find(map => map.mapId == this.id).bw;
+      this.edition = map.edition;
+      this.year = map.year;
 
+      this.visible = true;
       this.animating = {}
     }
 
@@ -204,14 +215,13 @@
 
     draw() {
       if(!ctx) return;
+      if(!this.visible) return;
 
       ctx.save();
       ctx.translate(this.thumbnailCenterX, this.thumbnailCenterY);
+      // const rotation = this.rotation * Math.max(1 - pixelsPerYear / 100, 0);
       ctx.rotate(this.animating.rotation ? this.animating.rotation.getValue() : this.rotation);
       ctx.translate(-this.thumbnailCenterX, -this.thumbnailCenterY);
-
-      ctx.fillStyle = '#ffffff11';
-      ctx.fillRect(...this.thumbnailBB);
 
       if(this.imageLoaded) ctx.drawImage(this.image, ...this.thumbnailBB);
 
@@ -243,10 +253,10 @@
   }
 
   function yearToCanvas(year) {
-    if(!timelineExpanded) return ((year - startYear) / (endYear - startYear)) * timelineLength;
+    if(!timelineExpanded) return ((year - timelineStore.startYear) / (timelineStore.endYear - timelineStore.startYear)) * timelineLength;
 
-    const from = Math.min(year, startYear);
-    const to = Math.max(year, startYear);
+    const from = Math.min(year, timelineStore.startYear);
+    const to = Math.max(year, timelineStore.startYear);
     let result = 0;
 
     for(let y = Math.floor(from); y < Math.ceil(to); ++y) {
@@ -254,12 +264,12 @@
       result += getExpandedYearWidth(y) * fraction;
     }
 
-    return result * (year >= startYear ? 1 : -1);
+    return result * (year >= timelineStore.startYear ? 1 : -1);
   }
 
   function canvasToYear(y) {
-    const sy = Math.min(startYear, endYear);
-    const ey = Math.max(startYear, endYear);
+    const sy = Math.min(timelineStore.startYear, timelineStore.endYear);
+    const ey = Math.max(timelineStore.startYear, timelineStore.endYear);
     return sy + ((y / timelineLength) * (ey - sy));
   }
 
@@ -270,27 +280,34 @@
   }
 
   function panTimelineYears(deltaYears) {
-    const maxDelta = MAX_YEAR - endYear;
-    const minDelta = MIN_YEAR - startYear;
+    const maxDelta = MAX_YEAR - timelineStore.endYear;
+    const minDelta = MIN_YEAR - timelineStore.startYear;
     deltaYears = Math.max(Math.min(deltaYears, maxDelta), minDelta);
-    startYear += deltaYears;
-    endYear += deltaYears;
+    timelineStore.startYear += deltaYears;
+    timelineStore.endYear += deltaYears;
   }
 
   function panTimelinePixels(deltaPixels) {
-    const deltaYears = (deltaPixels / timelineLength) * (endYear - startYear);
+    const deltaYears = (deltaPixels / timelineLength) * (timelineStore.endYear - timelineStore.startYear);
     panTimelineYears(deltaYears);
   }
 
-  function zoomTimeline(factor, center = (startYear + endYear) / 2) {
-    const currentRange = endYear - startYear;
+  function zoomTimeline(factor, center = (timelineStore.startYear + timelineStore.endYear) / 2) {
+    const currentRange = timelineStore.endYear - timelineStore.startYear;
     let newRange = currentRange * factor;
-    newRange = Math.max(newRange, MAX_RANGE);
 
-    let newStartYear = center - ((center - startYear) / currentRange) * newRange;
-    let newEndYear = center + ((endYear - center) / currentRange) * newRange;
-    startYear = Math.max(MIN_YEAR, newStartYear);
-    endYear = Math.min(MAX_YEAR, newEndYear);
+    let maxRange = MAX_RANGE;
+    for(let i = Math.floor(timelineStore.startYear); i < Math.ceil(timelineStore.endYear); i++) {
+      if(!mapThumbnails.has(i)) continue;
+      const expandedWidth = getExpandedYearWidth(i);
+      maxRange = Math.min(maxRange, timelineLength / expandedWidth);
+    }
+    newRange = Math.max(newRange, maxRange); // TODO: Dit is clunky als je pant naar kleinere stapels
+
+    let newCurrentRangeStart = center - ((center - timelineStore.startYear) / currentRange) * newRange;
+    let newCurrentRangeEnd = center + ((timelineStore.endYear - center) / currentRange) * newRange;
+    timelineStore.startYear = Math.max(MIN_YEAR, newCurrentRangeStart);
+    timelineStore.endYear = Math.min(MAX_YEAR, newCurrentRangeEnd);
   }
 
   function resizeCanvas() {
@@ -306,19 +323,86 @@
   function initTimeline() {
     timelineStore.loaded = true;
 
-    for(const edition of ['editie_1', 'editie_2', 'editie_3', 'editie_4', 'editie_5']) {
-      mapStore.warpedMapLayers[edition].renderer.warpedMapList.warpedMapsById.forEach(warpedMap => {
-        const mapThumbnail = new MapThumbnail(warpedMap);
-        if(!mapThumbnails.has(mapThumbnail.year)) 
-          mapThumbnails.set(mapThumbnail.year, mapThumbnail);
-        else if(mapThumbnails.get(mapThumbnail.year) instanceof MapThumbnailGroup) 
-          mapThumbnails.get(mapThumbnail.year).add(mapThumbnail);
-        else
-          mapThumbnails.set(mapThumbnail.year, new MapThumbnailGroup([
-            mapThumbnails.get(mapThumbnail.year), mapThumbnail
-          ]))
+    mapStore.waterStaatsKaarten.maps.forEach(map => {
+      const mapThumbnail = new MapThumbnail(map);
+      if(!mapThumbnails.has(mapThumbnail.year)) 
+        mapThumbnails.set(mapThumbnail.year, mapThumbnail);
+      else if(mapThumbnails.get(mapThumbnail.year) instanceof MapThumbnailGroup) 
+        mapThumbnails.get(mapThumbnail.year).add(mapThumbnail);
+      else
+        mapThumbnails.set(mapThumbnail.year, new MapThumbnailGroup([
+          mapThumbnails.get(mapThumbnail.year), mapThumbnail
+        ]))
+
+      if(!map.year) return;
+      timelineEditions[map.edition].startYear = Math.min(timelineEditions[map.edition].startYear, map.year);
+      timelineEditions[map.edition].endYear = Math.max(timelineEditions[map.edition].endYear, map.year);
+    });
+
+    setInterval(() => { // TODO: netter! 
+
+      const mapsInViewport = mapStore.waterStaatsKaarten.maps.filter(map => {
+        return mapStore.waterStaatsKaarten.layer.renderer.mapsInViewport.has(map.id)
       })
-    }
+      
+
+      const newMapThumbnails = new Map();
+      mapsInViewport.forEach(map => {
+        let mapThumbnail = mapThumbnailsById.get(map.id);
+
+        if(!newMapThumbnails.has(mapThumbnail.year)) 
+          newMapThumbnails.set(mapThumbnail.year, mapThumbnail);
+        else if(newMapThumbnails.get(mapThumbnail.year) instanceof MapThumbnailGroup) 
+          newMapThumbnails.get(mapThumbnail.year).add(mapThumbnail);
+        else
+          newMapThumbnails.set(mapThumbnail.year, new MapThumbnailGroup([
+            newMapThumbnails.get(mapThumbnail.year), mapThumbnail
+          ]))
+
+        if(!map.year) return;
+        timelineEditions[map.edition].startYear = Math.min(timelineEditions[map.edition].startYear, map.year);
+        timelineEditions[map.edition].endYear = Math.max(timelineEditions[map.edition].endYear, map.year);
+      });
+      mapThumbnails = newMapThumbnails;
+
+      // mapThumbnails.forEach(m => {
+      //   const year = m instanceof MapThumbnail ? m.year : m.mapThumbnails[0].year;
+
+      //   if(m instanceof MapThumbnailGroup) {
+      //     m.mapThumbnails = m.mapThumbnails.filter(i => mapsInViewport.has(i.id));
+      //     if(m.mapThumbnails.length == 1) 
+      //       mapThumbnails.set(year, m.mapThumbnails[0]);
+      //     else if(m.mapThumbnails.length == 0)
+      //       mapThumbnails.delete(year);
+      //   } else {
+      //     m.visible = mapsInViewport.has(m.id);
+      //   }
+      // })
+      // for(const mapThumbnail of mapThumbnails.values()) {
+      //   if(!mapThumbnail.hovering && !mapsInViewport.has(mapThumbnail.id)) {
+      //     mapThumbnail.visible = false;
+      //   } else {
+      //     mapThumbnail.visible = true;
+      //   }
+      // }
+    }, 50)
+
+    console.log("Deze gegevens heeft Timeline.svelte verzameld over de edities: ", timelineEditions);
+
+
+    // for(const edition of ['editie_1', 'editie_2', 'editie_3', 'editie_4', 'editie_5']) {
+    //   mapStore.warpedMapLayers[edition].renderer.warpedMapList.warpedMapsById.forEach(warpedMap => {
+    //     const mapThumbnail = new MapThumbnail(warpedMap);
+    //     if(!mapThumbnails.has(mapThumbnail.year)) 
+    //       mapThumbnails.set(mapThumbnail.year, mapThumbnail);
+    //     else if(mapThumbnails.get(mapThumbnail.year) instanceof MapThumbnailGroup) 
+    //       mapThumbnails.get(mapThumbnail.year).add(mapThumbnail);
+    //     else
+    //       mapThumbnails.set(mapThumbnail.year, new MapThumbnailGroup([
+    //         mapThumbnails.get(mapThumbnail.year), mapThumbnail
+    //       ]))
+    //   })
+    // }
 
 
     const patternCanvas = new OffscreenCanvas(64,64);
@@ -401,12 +485,59 @@
     }
     
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawTimeline(ctx, startYear, endYear);
+    drawTimeline(ctx, timelineStore.startYear, timelineStore.endYear);
 
-    for(let mapThumbnail of mapThumbnails.values()) {
-      if(mapThumbnail) {
+    // const minYear = Math.min(timelineStore.startYear, timelineStore.endYear);
+    // const maxYear = Math.max(timelineStore.startYear, timelineStore.endYear);
+    // for(let i = Math.ceil(minYear) - 1; i <= maxYear + 1; i++) {
+    //   if(!mapThumbnails.has(i)) continue;
+    //   mapThumbnails.get(i).draw();
+    // }
+
+    for(const mapThumbnail of mapThumbnails.values()) {
         mapThumbnail.draw();
-      }
+    }
+
+    for(const edition in timelineEditions) {
+      if(edition.includes('bis')) continue;
+      const x1 = yearToCanvas(timelineEditions[edition].startYear);
+      const x2 = yearToCanvas(timelineEditions[edition].endYear);
+
+
+      const odd = +edition.split('_')[1][0] % 2 > 0;
+      const bis = edition.includes('bis');
+
+      const offsetBottom = bis ? 20 : (odd ? 10 : 0);
+
+      ctx.fillStyle = "#ffffff33";
+      const textWidth = ctx.measureText(timelineEditions[edition].name.toUpperCase());
+      if(timelineEditions[edition].hovered) ctx.fillRect(
+        x1 + (x2 - x1) / 2 - textWidth.width / 2 - 2,
+        timelineStore.size - 55 + offsetBottom - 2,
+        textWidth.width + 4, 10 + 4
+      );
+
+      ctx.font = '10px Inter';
+      ctx.fillStyle = "#ffffff88";
+      ctx.fillText(
+        timelineEditions[edition].name.toUpperCase(),
+        x1 + (x2 - x1) / 2 - textWidth.width / 2,
+        timelineStore.size - 47 + offsetBottom
+      );
+
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = "#ffffff33";
+      ctx.beginPath()
+      ctx.moveTo(x1, timelineStore.size - 55 + offsetBottom);
+      ctx.lineTo(x1, timelineStore.size - 50 + offsetBottom);
+      ctx.lineTo(x1 + (x2 - x1) / 2 - textWidth.width / 2, timelineStore.size - 50 + offsetBottom);
+      ctx.stroke();
+
+      ctx.beginPath()
+      ctx.moveTo(x1 + (x2 - x1) / 2 + textWidth.width / 2, timelineStore.size - 50 + offsetBottom);
+      ctx.lineTo(x2, timelineStore.size - 50 + offsetBottom);
+      ctx.lineTo(x2, timelineStore.size - 55 + offsetBottom);
+      ctx.stroke();
     }
 
     timelineBoundsPatternOffset = (timelineBoundsPatternOffset + .2) % 8;
@@ -458,6 +589,32 @@
 
   let timelinePanning = 0;
   function onpointermove(e) {
+
+    // TODO: dit is lelijk
+    const canvasRect = canvas.getBoundingClientRect();
+    const y = e.clientY - canvasRect.top;
+    if(timelineEditions) for(let i of Object.values(timelineEditions)) i.hovered = false;
+    if(y > timelineSize - LABEL_SPACING && y < timelineSize) {
+      canvas.style.cursor = 'pointer';
+      for(const edition in timelineEditions) {
+        const x1 = yearToCanvas(timelineEditions[edition].startYear);
+        const x2 = yearToCanvas(timelineEditions[edition].endYear);
+        
+        const odd = +edition.split('_')[1][0] % 2 > 0;
+        const bis = edition.includes('bis');
+        const offsetBottom = bis ? 20 : (odd ? 10 : 0);
+
+        const y1 = timelineSize - 55 + offsetBottom;
+        const y2 = timelineSize - 45 + offsetBottom;
+
+        if(e.clientX >= x1 && e.clientX <= x2 && 
+           y >= y1 && y <= y2) {
+          timelineEditions[edition].hovered = true;
+          break;
+        }
+      } 
+    } else canvas.style.cursor = 'grab';
+
     const mapThumbnail = mapThumbnailAt(e.clientX, e.clientY);
     if(mapThumbnail != lastHoveredMap) {
       resetHoveredMapThumbnail();
@@ -539,12 +696,13 @@
     /* right: 0; */
     background: #224;
     z-index: 2;
-    box-shadow: inset 10px 0 20px -10px rgba(0, 0, 0, 1);
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, .33);
     cursor: grab;
     user-select: none;
     margin: 10px;
     border-radius: 4px;
-    opacity: .95;
+    background: #000033aa;
+    backdrop-filter: blur(4px) invert(100%);
   }
 
   .timeline-canvas:active {

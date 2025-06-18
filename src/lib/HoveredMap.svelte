@@ -30,8 +30,8 @@
     style:left={topLeft.x + 'px'}
     style:top={topLeft.y + 'px'}
     style="font-size: {Math.min(height/12,18) + 'px'}; padding: {height/16+'px'}">
-    <p class="text-white text-center" style:width={width}>{mapStore.hoveredMapTitle}</p>
-    <p class="text-white">({mapStore.hoveredMapYear})</p>
+    <p class="text-white text-center" style:width={width}>{mapStore.hoveredMap.metadata?.titel}</p>
+    <p class="text-white">({mapStore.hoveredMap.year})</p>
 </div>
 
 <!-- <span class="relative text-[10px] z-1 pointer-events-none"
