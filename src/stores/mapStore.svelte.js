@@ -6,6 +6,7 @@ export const mapStore = $state({
   metadata: {},
   visibleLayers: {},
   showBaseMap: true,
+  showWSK: true,
   showWater: false,
   showLabels: false,
   showAHN: false,

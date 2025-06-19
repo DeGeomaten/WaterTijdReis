@@ -7,9 +7,11 @@
     import ArrowElbowDownLeft from 'phosphor-svelte/lib/ArrowElbowDownLeft';
 
     import Geocoder from './Geocoder.svelte';
+	import { mapStore } from '../stores/mapStore.svelte';
   
     let searchQuery = $state("");
     let searchAutofill = $state("");
+    let searchCoordinates = $state({ lat: 0, lon: 0 });
     let showAboutPage = false;
 
     function share() {
@@ -27,7 +29,10 @@
       const data = await res.json();
 
       if (data.features.length > 0) {
-        console.log(data.features[0]);
+        searchCoordinates = {
+          lat: data.features[0].geometry.coordinates[1],
+          lon: data.features[0].geometry.coordinates[0]
+        }
         const feature = data.features[0];
         if(feature.properties.housenumber) searchAutofill = feature.properties.street + " " + feature.properties.housenumber + ", " + feature.properties.city;
         // else if(feature.properties.city) searchAutofill = feature.properties.city + ", ";
@@ -142,11 +147,31 @@
       bind:value={searchQuery}
       placeholder="Zoek op de kaart"
       class="search-bar"
+      on:keydown={(e) => {
+        if (e.key === 'Enter' && searchAutofill) {
+          mapStore.maplibreInstance.flyTo({
+            center: [searchCoordinates.lon, searchCoordinates.lat],
+            zoom: 10,
+            speed: 1,
+            curve: 1,
+          });
+        }
+      }}
       />
       <MagnifyingGlass class="icon size-4 relative right-[25px]" />
 
       {#if searchAutofill}
-        <div class="autofill absolute left-1 top-12 opacity-75">
+        <div 
+          class="autofill absolute left-1 top-12 opacity-75"
+          on:click={() => {
+            mapStore.maplibreInstance.flyTo({
+              center: [searchCoordinates.lon, searchCoordinates.lat],
+              zoom: 10,
+              speed: 1,
+              curve: 1,
+            });
+          }}
+        >
           {searchAutofill}
           <ArrowElbowDownLeft class="icon size-4 absolute right-4 top-2"></ArrowElbowDownLeft>
         </div>

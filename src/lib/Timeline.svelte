@@ -2,9 +2,7 @@
   import { mapStore } from '../stores/mapStore.svelte';
   import { lerp, easeInCubic, easeOutCubic, easeOutBounce } from '../stores/animation.svelte';
   import { timelineStore } from '../stores/timelineStore.svelte';
-	import { getIIIFMetadata } from '../stores/iiif-metadata.svelte';
 	import { filterStore } from '../stores/filterStore.svelte';
-	import { containsXY, returnOrUpdate } from 'ol/extent';
 
   let canvas;
   let ctx;
@@ -94,6 +92,32 @@
         if(size > maxSize) maxSize = size;
       }
       return maxSize;
+    }
+
+    getPositionOf(index) {
+      const from = this.pileSize + mapThumbnailPadding * 2;
+      const to = this.expandedSize;
+      let expandProgress = (pixelsPerYear - from) / (to - from);
+      expandProgress = Math.max(Math.min(expandProgress, 1), 0);
+
+      let x = yearToCanvas(this.mapThumbnails[0].year);
+      let y = 0;
+
+      x += -this.expandedSize / 2 * expandProgress;
+      x += this.mapThumbnails[0].thumbnailWidth / 2 * expandProgress;
+
+      
+      for (let i = 0; i < index; i++) {
+        if (timelineStore.horizontal) {
+          x += (this.mapThumbnails[i].thumbnailWidth + mapThumbnailPadding) * expandProgress;
+        } else {
+          y += (this.mapThumbnails[i].thumbnailHeight + mapThumbnailPadding) * expandProgress;
+        }
+      }
+      
+      x -= this.mapThumbnails[index].thumbnailWidth / 2;
+      y += mapThumbnailPadding;
+      return { x,y };
     }
 
     draw() {
@@ -557,11 +581,29 @@
     if(timelineStore.horizontal) y -= screenHeight - timelineSize;
     else x -= screenWidth - timelineSize;
 
-    for(let mapThumbnail of Array.from(mapThumbnails.values()).toReversed()) {
-      const [x2, y2] = [
-        mapThumbnail.thumbnailX + mapThumbnail.thumbnailWidth, 
-        mapThumbnail.thumbnailY + mapThumbnail.thumbnailHeight
-      ];
+    // TODO: alleen Math.round(canvasToYear(x))
+
+
+    for(let i = Math.floor(timelineStore.startYear); i <= Math.ceil(timelineStore.endYear); i++) {
+      if(!mapThumbnails.has(i)) continue;
+      const mapThumbnail = mapThumbnails.get(i);
+
+      if(mapThumbnail instanceof MapThumbnailGroup) {
+        const reversed = mapThumbnail.mapThumbnails;
+        for(let index = reversed.length - 1; index >= 0; index--) {
+          const m = reversed[index];
+          const x1 = mapThumbnail.getPositionOf(index).x;
+          const y1 = mapThumbnail.getPositionOf(index).y;
+          const [x2, y2] = [x1 + m.thumbnailWidth, y1 + m.thumbnailHeight];
+          if(x < x2 && y < y2 && x > x1 && y > y1) {
+            return m;
+          }
+        }
+
+        continue;
+      } 
+
+      const [x2, y2] = [mapThumbnail.thumbnailX + mapThumbnail.thumbnailWidth, mapThumbnail.thumbnailY + mapThumbnail.thumbnailHeight];
 
       if(x < x2 && y < y2 && x > mapThumbnail.thumbnailX && y > mapThumbnail.thumbnailY) {
         return mapThumbnail;
@@ -582,7 +624,13 @@
   }
 
   function resetHoveredMapThumbnail() {
-    mapThumbnails.forEach(m => m.hovering = false);
+    for(const mapThumbnail of mapThumbnails.values()) {
+      if(mapThumbnail.hovering) mapThumbnail.hovering = false;
+      if(mapThumbnail instanceof MapThumbnailGroup) {
+        for(const m of mapThumbnail.mapThumbnails) m.hovering = false;
+      }
+    }
+
     timelineStore.hoveredMap = null;
     clearTimeout(hoverTimeout);
   }

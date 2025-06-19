@@ -30,7 +30,7 @@
 	}
 	let layers = [
 		{
-			id: 'wsk',
+			id: 'waterstaatskaarten',
 			label: 'Waterstaatskaarten',
 			get checked() {
 				return mapStore.showWSK;
@@ -40,7 +40,7 @@
 			}
 		},
 		{
-			id: 'basemap',
+			id: 'background,landcover,park_national_park,park_nature_reserve,landuse_residential,landuse,waterway,boundary_county,boundary_state,water,water_shadow,aeroway-runway,aeroway-taxiway,waterway_label,tunnel_service_case,tunnel_minor_case,tunnel_sec_case,tunnel_pri_case,tunnel_trunk_case,tunnel_mot_case,tunnel_path,tunnel_service_fill,tunnel_minor_fill,tunnel_sec_fill,tunnel_pri_fill,tunnel_trunk_fill,tunnel_mot_fill,tunnel_rail,tunnel_rail_dash,road_service_case,road_minor_case,road_pri_case_ramp,road_trunk_case_ramp,road_mot_case_ramp,road_sec_case_noramp,road_pri_case_noramp,road_trunk_case_noramp,road_mot_case_noramp,road_path,road_service_fill,road_minor_fill,road_pri_fill_ramp,road_trunk_fill_ramp,road_mot_fill_ramp,road_sec_fill_noramp,road_pri_fill_noramp,road_trunk_fill_noramp,road_mot_fill_noramp,rail,rail_dash,bridge_service_case,bridge_minor_case,bridge_sec_case,bridge_pri_case,bridge_trunk_case,bridge_mot_case,bridge_path,bridge_service_fill,bridge_minor_fill,bridge_sec_fill,bridge_pri_fill,bridge_trunk_fill,bridge_mot_fill,building,building-top,boundary_country_outline,boundary_country_inner,watername_ocean,watername_sea,watername_lake,watername_lake_line,place_hamlet,place_suburbs,place_villages,place_town,place_country_2,place_country_1,place_state,place_continent,place_city_r6,place_city_r5,place_city_dot_r7,place_city_dot_r4,place_city_dot_r2,place_city_dot_z7,place_capital_dot_z7,poi_stadium,poi_park,roadname_minor,roadname_sec,roadname_pri,roadname_major,housenumber',
 			label: 'Achtergrondkaart',
 			get checked() {
 				return mapStore.showBaseMap;
@@ -50,7 +50,7 @@
 			}
 		},
 		{
-			id: 'labels',
+			id: 'watername_ocean,watername_sea,watername_lake,watername_lake_line,place_hamlet,place_suburbs,place_villages,place_town,place_country_2,place_country_1,place_state,place_continent,place_city_r6,place_city_r5,place_city_dot_r7,place_city_dot_r4,place_city_dot_r2,place_city_dot_z7,place_capital_dot_z7,poi_stadium,poi_park,roadname_minor,roadname_sec,roadname_pri,roadname_major,housenumber',
 			label: 'Plaatsnamen',
 			get checked() {
 				return mapStore.showLabels;
@@ -60,7 +60,7 @@
 			}
 		},
 		{
-			id: 'water',
+			id: 'custom-water-layer',
 			label: 'Waterwegen',
 			get checked() {
 				return mapStore.showWater;
@@ -71,7 +71,7 @@
 		},
 
 		{
-			id: 'ahn',
+			id: 'dsm-05-layer',
 			label: 'AHN',
 			get checked() {
 				return mapStore.showAHN;
@@ -82,7 +82,7 @@
 		},
 
 		{
-			id: 'osm',
+			id: 'osm-base',
 			label: 'OSM',
 			get checked() {
 				return mapStore.showOSM;
@@ -104,7 +104,7 @@
 		},
 
 		{
-			id: 'lucht',
+			id: 'luchtfoto-layer',
 			label: 'Luchtfoto',
 			get checked() {
 				return mapStore.showLucht;
@@ -115,7 +115,7 @@
 		},
 
 		{
-			id: 'wtsc',
+			id: 'waterschapsgrenzen',
 			label: 'Waterschapsgrenzen',
 			get checked() {
 				return mapStore.showWTSc;
@@ -152,20 +152,19 @@
 	}
 
 	function updateLayerOrderOnMap() {
-		const map = mapStore.map;
+		const map = mapStore.maplibreInstance;
 		if (!map || typeof map.getLayer !== 'function') return;
 
-		// Ga van onder naar boven door de lijst
-		for (let i = 0; i < layers.length; i++) {
-			const layerId = layers[i].id;
-			const beforeLayer = layers[i + 1]?.id; // de laag die er direct boven moet komen
+		const layerIds = layers.flatMap(layer => layer.id.split(',').map(id => id.trim())).reverse();
+		
+		for (let i = 0; i < layerIds.length; i++) {
+			const layerId = layerIds[i];
+			const nextLayerId = layerIds[i + 1] || undefined;
 
-			if (map.getLayer(layerId)) {
-				try {
-					map.moveLayer(layerId, beforeLayer);
-				} catch (err) {
-					console.warn(`Kon laag ${layerId} niet verplaatsen`, err);
-				}
+			try {
+				map.moveLayer(layerId, nextLayerId);
+			} catch (e) {
+				console.warn(`Could not move layer ${layerId}`, e);
 			}
 		}
 	}

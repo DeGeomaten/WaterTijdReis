@@ -19,6 +19,7 @@
 		if (!mapStore.loaded) return;
 
 		setBaseMapVisibility(mapStore.showBaseMap);
+		setWSKVisibility(mapStore.showWSK);
 		setLabelVisibility(mapStore.showLabels);
 		setWaterVisibility(mapStore.showWater);
 		setAHNVisibility(mapStore.showAHN);
@@ -49,7 +50,7 @@
 	});
 
 	function initMap() {
-		const m = new maplibre.Map({
+		const m = mapStore.maplibreInstance = new maplibre.Map({
 			container: 'map',
 			style: 'style.json',
 			crossSourceCollisions: false,
@@ -61,7 +62,7 @@
 		});
 
 		m.on('load', () => {
-      waterStaatsKaarten = mapStore.waterStaatsKaarten = new WSK(m);
+      		waterStaatsKaarten = mapStore.waterStaatsKaarten = new WSK(m);
 
 			initWarpedMapHighlight();
 			initWarpedMapFullHighlight();
@@ -221,9 +222,13 @@
 		});
 	}
 
+	function setWSKVisibility(visible) {
+		if (!waterStaatsKaarten || !waterStaatsKaarten.layer) return;
+		map.setLayoutProperty('waterstaatskaarten', 'visibility', visible ? 'visible' : 'none');
+	}
+
 	function setLabelVisibility(visible) {
 		const labelLayers = map.getStyle().layers.filter((i) => i.id.includes('-custom-label'));
-		console.log(labelLayers);
 		for (let layer of labelLayers) {
 			map.setLayoutProperty(layer.id, 'visibility', visible ? 'visible' : 'none');
 		}
@@ -363,7 +368,7 @@
 			paint: {
 				'line-color': '#ff0055',
 				'line-width': 1,
-				'line-dasharray': [2, 4]
+				'line-dasharray': [5, 3]
 			},
 			layout: {
 				visibility: 'none'
@@ -553,6 +558,10 @@
 <svelte:window
 	onkeydown={(e) => {
 		if (e.key == 'p') exportMapAsPNG();
+		if (e.key == 'Escape') {
+			resetSelectedMap();
+			resetHoveredMap();
+		}
 	}}
 />
 
