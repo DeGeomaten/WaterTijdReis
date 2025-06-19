@@ -1,6 +1,6 @@
 import { WarpedMapLayer } from '@allmaps/maplibre';
 import { WarpedMapEvent, WarpedMapEventType } from '@allmaps/render';
-import { mapStore } from '../stores/mapStore.svelte'
+import { mapStore } from './mapStore.svelte'
 import { timelineStore } from './timelineStore.svelte';
 
 

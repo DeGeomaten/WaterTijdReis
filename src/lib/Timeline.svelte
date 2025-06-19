@@ -1,6 +1,6 @@
 <script>
   import { mapStore } from '../stores/mapStore.svelte';
-  import { lerp, easeInCubic, easeOutCubic, easeOutBounce } from '../stores/animation.svelte';
+  import { lerp, easeInCubic, easeOutCubic } from '../stores/animation.svelte';
   import { timelineStore } from '../stores/timelineStore.svelte';
 	import { filterStore } from '../stores/filterStore.svelte';
 
