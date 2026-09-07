@@ -6,6 +6,7 @@ import { basemapStyle, LABELS_LAYERS } from "$lib/map/basemap";
 import { goto } from "$app/navigation";
 import { HistoricMapsContext } from "./historicMapsContext.svelte";
 import { getValidUserLocation } from "$lib/utils/userLocation";
+import { addGemeentegrenzenLayer, addWaterschapsgrenzenLayer } from "$lib/map/mapLayers.svelte";
 
 const defaultState = {
 	zoom: 6.5,
@@ -60,6 +61,7 @@ export class MapContext {
 	toastContent: string = $state("");
 
 	constructor() {
+		// URL Sync
 		$effect(() => {
 			this.historic.filter.yearStart;
 			this.historic.filter.yearEnd;
@@ -74,6 +76,35 @@ export class MapContext {
 			this.historic.pinnedMap;
 
 			this.syncStateToURL();
+		});
+
+		// Basemap & opacity sync
+		$effect(() => {
+			if (!this.maplibreLoaded || this.historic.selectedMap) return;
+
+			const isProtomaps = this.layerOptions.baseMap === "protomaps";
+
+			this.setProtomapsVisiblity(isProtomaps);
+			if (isProtomaps) {
+				this.setProtomapsWaterInFront(this.layerOptions.protoMapsWaterInFront);
+				this.setProtoMapsLabelsInFront(this.layerOptions.protoMapsLabelsInFront);
+			}
+
+			this.setAHNVisibility(this.layerOptions.baseMap === "ahn");
+			this.setSatellietVisibility(this.layerOptions.baseMap === "satelliet");
+
+			if (this.historic.warpedMapLayer) {
+				this.historic.warpedMapLayer.setLayerOptions({
+					opacity: this.layerOptions.historicMapsOpacity / 100,
+				});
+			}
+		});
+
+		// Overlays sync
+		$effect(() => {
+			if (!this.maplibreLoaded || !this.map) return;
+
+			this.updateOverlays(this.layerOptions.overlay);
 		});
 	}
 
@@ -278,6 +309,35 @@ export class MapContext {
 				essential: true,
 				duration: 250,
 			});
+		}
+	}
+
+	updateOverlays(overlay: "none" | "waterschapsgrenzen" | "gemeentegrenzen") {
+		if (!this.map) return;
+
+		if (overlay !== "waterschapsgrenzen") {
+			if (this.map.getLayer("overlay-waterschapsgrenzen")) {
+				this.map.removeLayer("overlay-waterschapsgrenzen");
+			}
+			if (this.map.getSource("pdok-waterschapsgrenzen")) {
+				this.map.removeSource("pdok-waterschapsgrenzen");
+			}
+		}
+
+		if (overlay !== "gemeentegrenzen") {
+			if (this.map.getLayer("overlay-gemeentegrenzen")) {
+				this.map.removeLayer("overlay-gemeentegrenzen");
+			}
+			if (this.map.getSource("pdok-gemeentegrenzen")) {
+				this.map.removeSource("pdok-gemeentegrenzen");
+			}
+		}
+
+		if (overlay === "waterschapsgrenzen" && !this.map.getSource("pdok-waterschapsgrenzen")) {
+			addWaterschapsgrenzenLayer(this.map);
+		}
+		if (overlay === "gemeentegrenzen" && !this.map.getSource("pdok-gemeentegrenzen")) {
+			addGemeentegrenzenLayer(this.map);
 		}
 	}
 

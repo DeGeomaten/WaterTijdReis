@@ -6,8 +6,6 @@
 	import { MapTrifold, FileText, PushPin } from "phosphor-svelte";
 	import Toast from "../ui/Toast.svelte";
 
-	let { extendClickedMapTimeout } = $props();
-
 	const mapContext = getContext<MapContext>("mapContext");
 
 	let rightBtnSelected = $state(false);
@@ -32,10 +30,10 @@
 		rightBtnSelected = true;
 
 		if (mapContext.historic.clickedHistoricMap && !mapContext.historic.selectedMap) {
-			extendClickedMapTimeout();
+			mapContext.historic.extendClickedMapTimeout();
 			mapContext.historic.setHistoricMapView(mapContext.historic.clickedHistoricMap);
 		} else if (mapContext.historic.pinnedMap && !mapContext.historic.selectedMap) {
-			extendClickedMapTimeout();
+			mapContext.historic.extendClickedMapTimeout();
 			mapContext.historic.setHistoricMapView(mapContext.historic.pinnedMap, pinnedView);
 		} else {
 			if (!mapContext.historic.setSheetIndexVisibility()) leftBtnClick();

@@ -81,6 +81,7 @@ export class HistoricMapsContext {
 	#rippleResetTimer: ReturnType<typeof setTimeout> | null = null;
 	#fillFadeOutTimer: ReturnType<typeof setTimeout> | null = null;
 	#featureTimeouts: Record<number | string, ReturnType<typeof setTimeout>> = {};
+	#clickedMapTimeout: ReturnType<typeof setTimeout> | null = null;
 
 	filter: Filter = $state({
 		yearStart: 1865,
@@ -174,6 +175,12 @@ export class HistoricMapsContext {
 
 		this.#handleMapSelection(historicMap, feature.id);
 		this.#triggerFillFlashAnimation(feature.id);
+	}
+
+	extendClickedMapTimeout(delay = 2500) {
+		if (!this.#clickedMapTimeout) return;
+		clearTimeout(this.#clickedMapTimeout);
+		this.#clickedMapTimeout = setTimeout(() => (this.#clickedFeatureId = null), delay);
 	}
 
 	setGridVisibility(isVisible: boolean, centerLngLat = { lng: 5.63, lat: 52.16 }, rippleScale = 3, speed = 300) {
@@ -458,7 +465,7 @@ export class HistoricMapsContext {
 	setHistoricMapView(historicMap: HistoricMap, view: MapView | undefined) {
 		if (!this.mapsLoaded) return;
 
-		this.mapContext.clickedFeature = null;
+		this.#clickedFeatureId = null;
 		this.setSheetIndexVisibility(false);
 
 		this.mapContext.savedLayerVisibility = {};

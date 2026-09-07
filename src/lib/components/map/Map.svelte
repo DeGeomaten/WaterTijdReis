@@ -11,7 +11,6 @@
 
 	import "maplibre-gl/dist/maplibre-gl.css";
 	import { MapContext } from "../../map/mapContext.svelte";
-	import { addGemeentegrenzenLayer, addWaterschapsgrenzenLayer } from "../../map/mapLayers.svelte";
 	import { updateMousePosition } from "../../state/mousePosition.svelte";
 	import { spriteStore } from "../../utils/spriteSheet.svelte";
 
@@ -24,55 +23,6 @@
 		if (!mapContext.map) mapContext.init(containerId);
 
 		spriteStore.init();
-	});
-
-	$effect(() => {
-		if (!mapContext.maplibreLoaded || mapContext.historic.selectedMap) return;
-
-		mapContext.setProtomapsVisiblity(mapContext.layerOptions.baseMap === "protomaps");
-		if (mapContext.layerOptions.baseMap === "protomaps")
-			mapContext.setProtomapsWaterInFront(mapContext.layerOptions.protoMapsWaterInFront);
-		if (mapContext.layerOptions.baseMap === "protomaps")
-			mapContext.setProtoMapsLabelsInFront(mapContext.layerOptions.protoMapsLabelsInFront);
-
-		mapContext.setAHNVisibility(mapContext.layerOptions.baseMap === "ahn");
-		mapContext.setSatellietVisibility(mapContext.layerOptions.baseMap === "satelliet");
-
-		if (mapContext.historic.warpedMapLayer)
-			mapContext.historic.warpedMapLayer.setLayerOptions({
-				opacity: mapContext.layerOptions.historicMapsOpacity / 100,
-			});
-	});
-
-	$effect(() => {
-		if (!mapContext.maplibreLoaded || !mapContext.map) return;
-
-		const { overlay } = mapContext.layerOptions;
-
-		if (overlay !== "waterschapsgrenzen") {
-			if (mapContext.map.getLayer("overlay-waterschapsgrenzen")) {
-				mapContext.map.removeLayer("overlay-waterschapsgrenzen");
-			}
-			if (mapContext.map.getSource("pdok-waterschapsgrenzen")) {
-				mapContext.map.removeSource("pdok-waterschapsgrenzen");
-			}
-		}
-
-		if (overlay !== "gemeentegrenzen") {
-			if (mapContext.map.getLayer("overlay-gemeentegrenzen")) {
-				mapContext.map.removeLayer("overlay-gemeentegrenzen");
-			}
-			if (mapContext.map.getSource("pdok-gemeentegrenzen")) {
-				mapContext.map.removeSource("pdok-gemeentegrenzen");
-			}
-		}
-
-		if (overlay === "waterschapsgrenzen" && !mapContext.map.getSource("pdok-waterschapsgrenzen")) {
-			addWaterschapsgrenzenLayer(mapContext.map);
-		}
-		if (overlay === "gemeentegrenzen" && !mapContext.map.getSource("pdok-gemeentegrenzen")) {
-			addGemeentegrenzenLayer(mapContext.map);
-		}
 	});
 
 	function handleKeyDown(e: KeyboardEvent) {
@@ -108,14 +58,6 @@
 			if (historicMap) mapContext.historic.setHistoricMapView(historicMap);
 		}
 	}
-
-	let clickedMapTimeout = null;
-
-	function extendClickedMapTimeout(delay = 2500) {
-		if (!clickedMapTimeout) return;
-		clearTimeout(clickedMapTimeout);
-		clickedMapTimeout = setTimeout(() => (mapContext.historic.clickedFeature = null), delay);
-	}
 </script>
 
 <div
@@ -130,7 +72,7 @@
 	<Toast content={mapContext.toastContent}></Toast>
 {/if}
 
-<MapSheetToggle {extendClickedMapTimeout}></MapSheetToggle>
+<MapSheetToggle></MapSheetToggle>
 
 {#if mapContext.maplibreLoaded}
 	<MapControls />
