@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { getContext } from "svelte";
+	import type { MapContext } from "$lib/map/mapContext.svelte";
 	import { fly } from "svelte/transition";
 	import { MagnifyingGlass, MagnifyingGlassMinus, MagnifyingGlassPlus, NavigationArrow, Stack } from "phosphor-svelte";
 
@@ -9,7 +11,7 @@
 	import LayersModal from "$lib/components/modals/LayersModal.svelte";
 	import Button from "$lib/components/ui/Button.svelte";
 
-	let { mapContext } = $props();
+	const mapContext = getContext<MapContext>("mapContext");
 
 	const geocodeEarthApiKey = env.PUBLIC_GEOCODE_EARTH_API_KEY;
 
@@ -60,9 +62,9 @@
 
 <svelte:window onkeydown={handleKeyDown} />
 
-<Geocoder {mapContext} bind:visible={searchBarVisible} providers={[new GeocodeEarth(geocodeEarthApiKey)]}></Geocoder>
+<Geocoder bind:visible={searchBarVisible} providers={[new GeocodeEarth(geocodeEarthApiKey)]}></Geocoder>
 
-<LayersModal bind:visible={layersPanelVisible} {mapContext}></LayersModal>
+<LayersModal bind:visible={layersPanelVisible}></LayersModal>
 
 <div
 	class="

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { getContext } from "svelte";
+	import type { MapContext } from "$lib/map/mapContext.svelte";
 	import * as turf from "@turf/turf";
 	import { ArrowSquareOut, CaretDown, CaretUp, Check, Copy, Info } from "phosphor-svelte";
 	import { fade, fly, slide } from "svelte/transition";
@@ -8,7 +10,7 @@
 
 	const MANIFEST_URL = "https://tu-delft-heritage.github.io/watertijdreis-data/collection.json";
 
-	let { mapContext } = $props();
+	const mapContext = getContext<MapContext>("mapContext");
 
 	// Global IIIF Collection Manifest
 	let manifestCollection = $state<any>(null);

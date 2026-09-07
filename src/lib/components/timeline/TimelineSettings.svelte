@@ -1,9 +1,13 @@
 <script lang="ts">
+	import { getContext } from "svelte";
+	import type { MapContext } from "$lib/map/mapContext.svelte";
 	import { scale } from "svelte/transition";
 	import { Switch } from "bits-ui";
 	import { ArrowElbowDownRight, Gear } from "phosphor-svelte";
 
-	let { mapContext, minYear, maxYear } = $props();
+	let { minYear, maxYear } = $props();
+
+	const mapContext = getContext<MapContext>("mapContext");
 
 	let showSettings = $state(false);
 	let settingsPanel: HTMLDivElement | undefined = $state();

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { getContext } from "svelte";
+	import type { MapContext } from "$lib/map/mapContext.svelte";
 	import { fade } from "svelte/transition";
 	import { Spring } from "svelte/motion";
 	import { HandGrabbing } from "phosphor-svelte";
@@ -7,7 +9,8 @@
 	import TimelineSettings from "./TimelineSettings.svelte";
 	import { onMount } from "svelte";
 
-	let { mapContext, visible } = $props();
+	let { visible } = $props();
+	const mapContext = getContext<MapContext>("mapContext");
 
 	let width = $state(0);
 	let height = $state(120);
@@ -221,9 +224,9 @@
 	}
 
 	let ticks = $derived.by(() => {
-		let major = ""; // Elke 25 jaar
-		let medium = ""; // Elke 5 jaar
-		let minor = ""; // Elk jaar
+		let major = ""; // Every 25 years
+		let medium = ""; // Every 5 years
+		let minor = ""; // Every year
 
 		const topY = ticksOnTop ? 0 : height;
 		const bottomBase = ticksOnTop ? 0 : height;
@@ -367,12 +370,7 @@
 				{#each yearsWithMaps as year}
 					{#if year >= startYearInt && year <= endYearInt}
 						{@const x = getX(year)}
-						<MapStack
-							{x}
-							maps={mapsByYear[year]}
-							{pixelsPerYear}
-							{mapContext}
-							selectedYear={mapContext.historic.filter.yearEnd}
+						<MapStack {x} maps={mapsByYear[year]} {pixelsPerYear} selectedYear={mapContext.historic.filter.yearEnd}
 						></MapStack>
 					{/if}
 				{/each}
@@ -548,7 +546,7 @@
 			</svg>
 		</div>
 
-		<TimelineSettings {mapContext} minYear={minHistoricMapYear} maxYear={maxHistoricMapYear}></TimelineSettings>
+		<TimelineSettings minYear={minHistoricMapYear} maxYear={maxHistoricMapYear}></TimelineSettings>
 	</div>
 {/if}
 

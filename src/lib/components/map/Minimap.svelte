@@ -1,8 +1,10 @@
 <script lang="ts">
+	import { getContext } from "svelte";
+	import type { MapContext } from "$lib/map/mapContext.svelte";
 	import * as turf from "@turf/turf";
 	import { draw, fade } from "svelte/transition";
 
-	let { mapContext } = $props();
+	const mapContext = getContext<MapContext>("mapContext");
 
 	let previewHistoricMap = $derived.by(() => {
 		const visibleMaps = mapContext.historic.visibleMapsInViewport;

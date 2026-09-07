@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { getContext } from "svelte";
+	import type { MapContext } from "$lib/map/mapContext.svelte";
 	import { throttle } from "lodash-es";
 	import { MapTrifold, MapPin, Mountains, Camera, EyeSlash, Waves } from "phosphor-svelte";
 
@@ -6,7 +8,9 @@
 	import Select from "$lib/components/ui/Select.svelte";
 	import Slider from "$lib/components/ui/Slider.svelte";
 
-	let { visible = $bindable(), mapContext } = $props();
+	let { visible = $bindable() } = $props();
+
+	const mapContext = getContext<MapContext>("mapContext");
 
 	let targetOpacity = $state(mapContext.layerOptions.historicMapsOpacity);
 	$effect(() => {

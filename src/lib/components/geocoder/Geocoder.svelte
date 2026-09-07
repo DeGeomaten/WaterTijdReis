@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { getContext } from "svelte";
+	import type { MapContext } from "$lib/map/mapContext.svelte";
 	import { MagnifyingGlass } from "phosphor-svelte";
 	import { debounce } from "lodash-es";
 	import type { GeojsonPoint } from "@allmaps/types";
@@ -13,7 +15,9 @@
 		};
 	};
 
-	let { providers, visible = $bindable(), mapContext } = $props();
+	let { providers, visible = $bindable() } = $props();
+
+	const mapContext = getContext<MapContext>("mapContext");
 
 	let inputEl: HTMLInputElement | undefined = $state();
 	let listEl: HTMLUListElement | undefined = $state();

@@ -17,7 +17,7 @@
 
 	let {
 		Icon,
-		kbd = undefined,
+		kbd = undefined, // Keyboard shortcut to display
 		children,
 		onclick,
 		collapsed = $bindable(true),

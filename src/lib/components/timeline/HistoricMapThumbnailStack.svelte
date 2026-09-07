@@ -1,16 +1,19 @@
 <script lang="ts">
+	import { getContext } from "svelte";
+	import type { MapContext } from "$lib/map/mapContext.svelte";
 	import { scale } from "svelte/transition";
-	import MapThumbnail from "../map/HistoricMapThumbnail.svelte";
-	import { MapContext } from "../../map/mapContext.svelte";
+	import MapThumbnail from "$lib/components/map/HistoricMapThumbnail.svelte";
 
 	type HistoricMap = { id: string; year: number };
 
-	let { mapContext, maps, x, pixelsPerYear, selectedYear } = $props<{
+	let { maps, x, pixelsPerYear, selectedYear } = $props<{
 		mapContext: MapContext;
 		maps: HistoricMap[];
 		x: number;
 		pixelsPerYear: number;
 	}>();
+
+	const mapContext = getContext<MapContext>("mapContext");
 
 	const mapWidth = 40;
 	const Z_DEPTH = 2;

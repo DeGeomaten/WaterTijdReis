@@ -1,9 +1,14 @@
 <script lang="ts">
+	import { getContext } from "svelte";
+	import type { MapContext } from "$lib/map/mapContext.svelte";
+
 	import { fade, slide } from "svelte/transition";
 	import { MapTrifold, FileText, PushPin } from "phosphor-svelte";
 	import Toast from "../ui/Toast.svelte";
 
-	let { mapContext, extendClickedMapTimeout } = $props();
+	let { extendClickedMapTimeout } = $props();
+
+	const mapContext = getContext<MapContext>("mapContext");
 
 	let rightBtnSelected = $state(false);
 	let leftBtnWidth = $state(86);

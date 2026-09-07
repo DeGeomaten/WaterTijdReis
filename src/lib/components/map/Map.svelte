@@ -1,32 +1,29 @@
 <script lang="ts">
-	import { onMount } from "svelte";
+	import { onMount, getContext, setContext } from "svelte";
 
 	import AppHeader from "../AppHeader.svelte";
-	import Minimap from "./Minimap.svelte";
-	import HistoricMapInfo from "./HistoricMapInfo.svelte";
-	import Toast from "../ui/Toast.svelte";
 	import Timeline from "../timeline/Timeline.svelte";
-	import MapSheetToggle from "./MapSheetToggle.svelte";
+	import Toast from "../ui/Toast.svelte";
+	import HistoricMapInfo from "./HistoricMapInfo.svelte";
 	import MapControls from "./MapControls.svelte";
+	import MapSheetToggle from "./MapSheetToggle.svelte";
+	import Minimap from "./Minimap.svelte";
 
+	import "maplibre-gl/dist/maplibre-gl.css";
 	import { MapContext } from "../../map/mapContext.svelte";
-	import { mousePosition } from "../../state/mousePosition.svelte";
-	import { spriteStore } from "../../utils/spriteSheet.svelte";
 	import { addGemeentegrenzenLayer, addWaterschapsgrenzenLayer } from "../../map/mapLayers.svelte";
+	import { updateMousePosition } from "../../state/mousePosition.svelte";
+	import { spriteStore } from "../../utils/spriteSheet.svelte";
 
 	const containerId = "map-container";
 	const mapContext = new MapContext();
 
-	onMount(() => {
-		if (!mapContext.map) mapContext.init(containerId);
-		spriteStore.init();
-	});
+	setContext("mapContext", mapContext);
 
 	onMount(() => {
-		document.addEventListener("pointermove", (e) => {
-			mousePosition.x = e.x;
-			mousePosition.y = e.y;
-		});
+		if (!mapContext.map) mapContext.init(containerId);
+
+		spriteStore.init();
 	});
 
 	$effect(() => {
@@ -48,9 +45,11 @@
 	});
 
 	$effect(() => {
-		if (!mapContext.maplibreLoaded) return;
+		if (!mapContext.maplibreLoaded || !mapContext.map) return;
 
-		if (mapContext.layerOptions.overlay !== "waterschapsgrenzen") {
+		const { overlay } = mapContext.layerOptions;
+
+		if (overlay !== "waterschapsgrenzen") {
 			if (mapContext.map.getLayer("overlay-waterschapsgrenzen")) {
 				mapContext.map.removeLayer("overlay-waterschapsgrenzen");
 			}
@@ -59,7 +58,7 @@
 			}
 		}
 
-		if (mapContext.layerOptions.overlay !== "gemeentegrenzen") {
+		if (overlay !== "gemeentegrenzen") {
 			if (mapContext.map.getLayer("overlay-gemeentegrenzen")) {
 				mapContext.map.removeLayer("overlay-gemeentegrenzen");
 			}
@@ -68,17 +67,47 @@
 			}
 		}
 
-		if (mapContext.layerOptions.overlay === "waterschapsgrenzen") {
-			if (!mapContext.map.getSource("pdok-waterschapsgrenzen")) {
-				addWaterschapsgrenzenLayer(mapContext.map);
-			}
+		if (overlay === "waterschapsgrenzen" && !mapContext.map.getSource("pdok-waterschapsgrenzen")) {
+			addWaterschapsgrenzenLayer(mapContext.map);
 		}
-		if (mapContext.layerOptions.overlay === "gemeentegrenzen") {
-			if (!mapContext.map.getSource("pdok-gemeentegrenzen")) {
-				addGemeentegrenzenLayer(mapContext.map);
-			}
+		if (overlay === "gemeentegrenzen" && !mapContext.map.getSource("pdok-gemeentegrenzen")) {
+			addGemeentegrenzenLayer(mapContext.map);
 		}
 	});
+
+	function handleKeyDown(e: KeyboardEvent) {
+		if (["INPUT", "TEXTAREA", "SELECT"].includes((e.target as HTMLElement)?.tagName)) return;
+
+		const key = e.key.toLowerCase();
+
+		if (key === "=") mapContext.zoomIn();
+		if (key === "-") mapContext.zoomOut();
+
+		if (mapContext.layerOptions.baseMap === "protomaps") {
+			if (key === "w") {
+				mapContext.layerOptions.protoMapsWaterInFront = !mapContext.layerOptions.protoMapsWaterInFront;
+			}
+			if (key === "t") {
+				mapContext.layerOptions.protoMapsLabelsInFront = !mapContext.layerOptions.protoMapsLabelsInFront;
+			}
+		}
+
+		if (e.key === "Escape") {
+			mapContext.historic.clickedFeature = null;
+			mapContext.historic.setSheetIndexVisibility(false);
+		}
+	}
+
+	function handlePopState() {
+		mapContext.applyStateFromURL();
+
+		const q = new URLSearchParams(window.location.search);
+		const bladId = q.get("blad");
+		if (bladId) {
+			const historicMap = mapContext.historic.mapsById.get(bladId);
+			if (historicMap) mapContext.historic.setHistoricMapView(historicMap);
+		}
+	}
 
 	let clickedMapTimeout = null;
 
@@ -89,70 +118,35 @@
 	}
 </script>
 
-<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@3.4.0/dist/maplibre-gl.css" />
-
 <div
 	id={containerId}
-	class="polka fixed inset-0 h-full w-full bg-size-[25px_25px]"
-	style={`
-		touch-action: auto; 
-		background-color: ${mapContext.historic.selectedMap ? "#fffaff" : "#fafaff"}; 
-		background-image: radial-gradient(${mapContext.historic.selectedMap ? "#fef" : "#eef"} 2.5px, transparent 2.5px)
-	`}
+	class="polka fixed inset-0 h-full w-full bg-[length:25px_25px]"
+	style:touch-action="auto"
+	style:background-color={mapContext.historic.selectedMap ? "#fffaff" : "#fafaff"}
+	style:background-image={`radial-gradient(${mapContext.historic.selectedMap ? "#fef" : "#eef"} 2.5px, transparent 2.5px)`}
 ></div>
 
 {#if !mapContext.historic.selectedMap}
 	<Toast content={mapContext.toastContent}></Toast>
 {/if}
 
-<MapSheetToggle {mapContext} {extendClickedMapTimeout}></MapSheetToggle>
+<MapSheetToggle {extendClickedMapTimeout}></MapSheetToggle>
 
 {#if mapContext.maplibreLoaded}
-	<MapControls {mapContext} />
+	<MapControls />
 {/if}
 
-<AppHeader {mapContext} />
+<AppHeader />
 
-<Timeline {mapContext} visible={mapContext.historic.mapsLoaded && !mapContext.historic.selectedMap}></Timeline>
+<Timeline visible={mapContext.historic.mapsLoaded && !mapContext.historic.selectedMap}></Timeline>
 
-<Minimap {mapContext}></Minimap>
-<HistoricMapInfo {mapContext}></HistoricMapInfo>
+<Minimap></Minimap>
+<HistoricMapInfo></HistoricMapInfo>
 
-<svelte:window
-	onkeydown={(e) => {
-		if (e.key.toLowerCase() == "=") mapContext.zoomIn();
-		if (e.key.toLowerCase() == "-") mapContext.zoomOut();
-
-		if (e.key.toLowerCase() == "w" && mapContext.layerOptions.baseMap == "protomaps") {
-			mapContext.layerOptions.protoMapsWaterInFront = !mapContext.layerOptions.protoMapsWaterInFront;
-		}
-
-		if (e.key.toLowerCase() == "t" && mapContext.layerOptions.baseMap == "protomaps") {
-			mapContext.layerOptions.protoMapsLabelsInFront = !mapContext.layerOptions.protoMapsLabelsInFront;
-		}
-
-		if (e.key == "Escape") {
-			mapContext.historic.clickedFeature = null;
-			mapContext.historic.setSheetIndexVisibility(false);
-		}
-	}}
-	onpopstate={() => {
-		mapContext.applyStateFromURL();
-
-		const q = new URLSearchParams(window.location.search);
-		const bladId = q.get("blad");
-		if (bladId) {
-			const historicMap = mapContext.historic.mapsById.get(bladId);
-			if (historicMap) mapContext.historic.setHistoricMapView(historicMap);
-		}
-	}}
-/>
+<svelte:window onpointermove={updateMousePosition} onkeydown={handleKeyDown} onpopstate={handlePopState} />
 
 <style>
-	#map-container canvas {
-		outline: none !important;
-	}
-	#map-container canvas:focus {
+	#map-container :global(canvas) {
 		outline: none !important;
 	}
 </style>

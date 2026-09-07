@@ -1,10 +1,12 @@
 <script lang="ts">
+	import { getContext } from "svelte";
+	import type { MapContext } from "$lib/map/mapContext.svelte";
 	import { ShareFat, Info } from "phosphor-svelte";
 	import ShareModal from "./modals/ShareModal.svelte";
 	import Button from "./ui/Button.svelte";
 	import AboutModal from "./modals/AboutModal.svelte";
 
-	let { mapContext } = $props();
+	const mapContext = getContext<MapContext>("mapContext");
 
 	let aboutPanelVisible = $state(false);
 	let shareModalVisible = $state(false);
