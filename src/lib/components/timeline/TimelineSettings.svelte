@@ -190,7 +190,7 @@
 							if (yearStart >= minYear && yearStart < mapContext.historic.filter.yearEnd)
 								mapContext.historic.filter.yearStart = yearStart;
 						}}
-						class="text-wtr-lighter-blue border-wtr-subtle-blue w-20 rounded border px-2 py-1 text-[16px] font-[600]"
+						class="text-wtr-blue border-wtr-subtle-blue w-20 rounded border px-2 py-1 text-[16px] font-[500]"
 					/>
 					tot
 					<input
@@ -206,7 +206,7 @@
 						oninput={() => {
 							if (yearEnd >= minYear && yearEnd <= maxYear) mapContext.historic.filter.yearEnd = yearEnd;
 						}}
-						class="text-wtr-lighter-blue border-wtr-subtle-blue w-20 rounded border px-2 py-1 text-[16px] font-[600]"
+						class="text-wtr-blue border-wtr-subtle-blue w-20 rounded border px-2 py-1 text-[16px] font-[500]"
 					/>
 				</li>
 				<li class="flex items-center justify-between rounded-md px-2 py-1 hover:bg-gray-50">

@@ -326,7 +326,6 @@
 											? 'bg-wtr-subtle-blue/20 ring-wtr-pink ring-1'
 											: ''}"
 									>
-										<!-- H-14 W-FIT HOUDT OORSPRONKELIJKE BEELDVERHOUDING -->
 										<div class="bg-wtr-subtle-blue/10 h-14 w-fit flex-shrink-0 overflow-hidden rounded-sm shadow-md">
 											{#if !displayType.toLowerCase().includes("achterkant") && variantMap}
 												<MapThumbnail id={variantMap.id} height={56} />
