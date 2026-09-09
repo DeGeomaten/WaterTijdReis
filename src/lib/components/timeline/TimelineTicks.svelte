@@ -102,7 +102,7 @@
 
 	<path d={ticks.major} class="stroke-wtr-subtle-blue/53" stroke-width="1.5" />
 
-	{#each { length: endYearInt - startYearInt + 1 } as _, i}
+	{#each { length: endYearInt - startYearInt + 1 } as _, i (i)}
 		{@const year = startYearInt + i}
 		{@const x = getX(year)}
 
@@ -142,7 +142,7 @@
 		{/if}
 	{/each}
 
-	{#each editions as ed, i}
+	{#each editions as ed, i (i)}
 		{@const lineY = i % 2 === 0 ? 110 : 108}
 		{@const start = getX(ed.yearStart)}
 		{@const middle = getX((ed.yearStart + ed.yearEnd) / 2)}

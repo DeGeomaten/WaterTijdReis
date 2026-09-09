@@ -244,7 +244,7 @@
 						overflow-y-auto bg-white sm:max-h-[60vh]"
 				>
 					{#if features.length > 0}
-						{#each features as feature, i}
+						{#each features as feature, i (i)}
 							<li class="w-full">
 								<button
 									type="button"

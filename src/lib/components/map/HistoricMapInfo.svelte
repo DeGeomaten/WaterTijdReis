@@ -292,7 +292,7 @@
 							<span class="font-medium">{historicMap.label}</span>
 						</li>
 
-						{#each getMetadata(canvasManifest) as [label, value]}
+						{#each getMetadata(canvasManifest) as [label, value], i (i)}
 							<li class="bg-wtr-subtle-blue/10 rounded-md px-3 py-1.5">
 								<span class="font-semibold opacity-60">{label}: </span>
 								<span class="font-medium">{value}</span>
@@ -306,7 +306,7 @@
 					<div>
 						<h3 class="text-wtr-subtle-blue mb-2 text-base font-semibold">Bijbladen</h3>
 						<div class="flex flex-col gap-1">
-							{#each variants as variant}
+							{#each variants as variant, i (i)}
 								{@const metadata = getMetadata(variant)}
 								{@const rawType = metadata.find((i) => i[0] === "Type")?.[1] || "Hoofdblad (voorkant)"}
 								{@const displayType = rawType.replace("Achterkant", "Hoofdblad (achterkant)")}

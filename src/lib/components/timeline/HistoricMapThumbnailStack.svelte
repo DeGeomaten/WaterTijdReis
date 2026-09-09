@@ -3,14 +3,12 @@
 	import type { MapContext } from "$lib/map/mapContext.svelte";
 	import { scale } from "svelte/transition";
 	import MapThumbnail from "$lib/components/map/HistoricMapThumbnail.svelte";
+	import type { HistoricMap } from "$lib/types/historicmap";
 
-	type HistoricMap = { id: string; year: number };
-
-	let { maps, x, pixelsPerYear, selectedYear } = $props<{
-		mapContext: MapContext;
+	let { maps, x, selectedYear } = $props<{
 		maps: HistoricMap[];
 		x: number;
-		pixelsPerYear: number;
+		selectedYear: number;
 	}>();
 
 	const mapContext = getContext<MapContext>("mapContext");

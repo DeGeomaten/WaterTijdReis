@@ -51,7 +51,6 @@
 	let selectedBIS = $state(mapContext.historic.filter.bis);
 	let selectedHWP = $state(mapContext.historic.filter.type === "HWP");
 	let selectedWVE = $state(mapContext.historic.filter.type === "WVE");
-	let selectedOption = $state("");
 
 	function clearAll() {
 		selectedRegulier = false;

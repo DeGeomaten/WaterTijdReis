@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, getContext, setContext } from "svelte";
+	import { onMount, setContext } from "svelte";
 
 	import AppHeader from "../AppHeader.svelte";
 	import Timeline from "../timeline/Timeline.svelte";

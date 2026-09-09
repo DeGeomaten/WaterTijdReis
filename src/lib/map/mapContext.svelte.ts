@@ -433,6 +433,8 @@ export class MapContext {
 	setLabelVisibility(visible = true) {
 		if (!this.maplibreLoaded) return;
 
+		this.activeMap.setPaintProperty("map-outlines-numbers", "text-opacity", !visible ? +this.sheetIndexVisible : 0);
+
 		this.activeMap.setPaintProperty("map-outlines-labels", "text-opacity-transition", {
 			duration: 300,
 		});

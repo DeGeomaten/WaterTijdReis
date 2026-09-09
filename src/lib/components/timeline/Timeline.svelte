@@ -4,10 +4,11 @@
 	import type { MapContext } from "$lib/map/mapContext.svelte";
 
 	import TimelinePointer from "./TimelinePointer.svelte";
-	import MapStack from "./HistoricMapThumbnailStack.svelte";
+	import HistoricMapThumbnailStack from "./HistoricMapThumbnailStack.svelte";
 	import TimelineSettings from "./TimelineSettings.svelte";
 	import TimelineTicks from "./TimelineTicks.svelte";
 	import TimelineHint from "./TimelineHint.svelte";
+	import type { HistoricMap } from "$lib/types/historicmap";
 
 	let { visible }: { visible: boolean } = $props();
 	const mapContext = getContext<MapContext>("mapContext");
@@ -70,14 +71,22 @@
 
 	let mapsByYear = $derived.by(() => {
 		if (!mapContext.historic.mapsLoaded) return {};
-		const res: Record<number, any[]> = {};
+		const res: Record<number, HistoricMap[]> = {};
 		for (const map of filteredMaps) (res[map.yearEnd] ??= []).push(map);
 		return res;
 	});
 
+	type Edition = {
+		name: string;
+		edition: number;
+		bis: boolean;
+		yearStart: number;
+		yearEnd: number;
+	};
+
 	let editions = $derived.by(() => {
 		if (!mapContext.historic.mapsLoaded) return [];
-		const editionMap = new Map<string, any>();
+		const editionMap = new Map<string, Edition>();
 		for (const map of filteredMaps) {
 			const key = `${map.edition}-${map.bis}`;
 			let ed = editionMap.get(key);
@@ -228,10 +237,10 @@
 
 			<!-- Map Thumbnails Stack -->
 			<div class="absolute inset-0 z-1 h-[200px] w-full" style="perspective: 1000px; transform-style: preserve-3d;">
-				{#each yearsWithMaps as year}
+				{#each yearsWithMaps as year (year)}
 					{#if year >= startYearInt && year <= endYearInt}
 						{@const x = getX(year)}
-						<MapStack {x} maps={mapsByYear[year]} {pixelsPerYear} selectedYear={mapContext.historic.filter.yearEnd} />
+						<HistoricMapThumbnailStack {x} maps={mapsByYear[year]} selectedYear={mapContext.historic.filter.yearEnd} />
 					{/if}
 				{/each}
 			</div>
