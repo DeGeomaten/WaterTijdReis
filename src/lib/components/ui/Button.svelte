@@ -20,7 +20,7 @@
 		kbd = undefined, // Keyboard shortcut to display
 		children,
 		onclick,
-		collapsed = $bindable(true),
+		collapsed = $bindable(false),
 		collapseAfterRender = true,
 		collapseAfterRenderDelay = 2000,
 		openOnHover = true,

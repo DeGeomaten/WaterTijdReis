@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { getContext } from "svelte";
 	import type { MapContext } from "$lib/map/mapContext.svelte";
+	import { ui } from "$lib/state/ui.svelte";
 	import { fly } from "svelte/transition";
 	import { MagnifyingGlass, MagnifyingGlassMinus, MagnifyingGlassPlus, NavigationArrow, Stack } from "phosphor-svelte";
 
@@ -14,9 +15,6 @@
 	const mapContext = getContext<MapContext>("mapContext");
 
 	const geocodeEarthApiKey = env.PUBLIC_GEOCODE_EARTH_API_KEY;
-
-	let searchBarVisible = $state(false);
-	let layersPanelVisible = $state(false);
 
 	let scaleWidth = $state(60);
 	let scaleText = $state("100 m");
@@ -49,22 +47,27 @@
 		const isApple = isApplePlatform();
 		const isModifierPressed = isApple ? e.metaKey : e.ctrlKey;
 
+		const target = e.target as HTMLElement;
+		if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) {
+			return;
+		}
+
 		if (e.key.toLowerCase() === "k" && isModifierPressed) {
 			e.preventDefault();
-			searchBarVisible = true;
+			ui.openSearch();
 		}
 
 		if (e.key.toLowerCase() === "l") {
-			layersPanelVisible = !layersPanelVisible;
+			ui.toggleLayers();
 		}
 	}
 </script>
 
 <svelte:window onkeydown={handleKeyDown} />
 
-<Geocoder bind:visible={searchBarVisible} providers={[new GeocodeEarth(geocodeEarthApiKey)]}></Geocoder>
+<Geocoder bind:visible={ui.searchVisible} providers={[new GeocodeEarth(geocodeEarthApiKey)]}></Geocoder>
 
-<LayersModal bind:visible={layersPanelVisible}></LayersModal>
+<LayersModal bind:visible={ui.layersModalVisible}></LayersModal>
 
 <div
 	class="
@@ -74,9 +77,7 @@
 >
 	{#if !mapContext.historic.selectedMap}
 		<div transition:fly={{ x: 100, duration: 250 }}>
-			<Button tabindex={5} Icon={MagnifyingGlass} kbd="⌘K" onclick={() => (searchBarVisible = true)}>
-				Zoek plaats ...
-			</Button>
+			<Button tabindex={5} Icon={MagnifyingGlass} kbd="⌘K" onclick={() => ui.openSearch()}>Zoek plaats ...</Button>
 		</div>
 
 		<div transition:fly={{ x: 100, duration: 250 }}>
@@ -86,8 +87,7 @@
 		</div>
 
 		<div transition:fly={{ x: 100, duration: 250 }}>
-			<Button tabindex={7} Icon={Stack} kbd="L" onclick={() => (layersPanelVisible = !layersPanelVisible)}>Lagen</Button
-			>
+			<Button tabindex={7} Icon={Stack} kbd="L" onclick={() => ui.toggleLayers()}>Lagen</Button>
 		</div>
 	{/if}
 

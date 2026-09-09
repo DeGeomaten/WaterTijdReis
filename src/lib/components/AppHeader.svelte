@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { getContext } from "svelte";
+	import { ui } from "$lib/state/ui.svelte";
 	import type { MapContext } from "$lib/map/mapContext.svelte";
 	import { ShareFat, Info } from "phosphor-svelte";
 	import ShareModal from "./modals/ShareModal.svelte";
@@ -7,14 +8,11 @@
 	import AboutModal from "./modals/AboutModal.svelte";
 
 	const mapContext = getContext<MapContext>("mapContext");
-
-	let aboutPanelVisible = $state(false);
-	let shareModalVisible = $state(false);
 </script>
 
-<AboutModal bind:visible={aboutPanelVisible}></AboutModal>
+<AboutModal bind:visible={ui.aboutModalVisible}></AboutModal>
 
-<ShareModal bind:visible={shareModalVisible}></ShareModal>
+<ShareModal bind:visible={ui.shareModalVisible}></ShareModal>
 
 <header
 	class="text-wtr-blue absolute top-2 left-2 z-999 flex items-center gap-1 rounded-[8px] bg-white p-4 shadow-lg sm:top-5 sm:left-5"
@@ -35,8 +33,8 @@
 		</h1>
 	</button>
 
-	<Button tabindex={1} onclick={() => (aboutPanelVisible = !aboutPanelVisible)} Icon={Info}>Over</Button>
-	<Button tabindex={2} onclick={() => (shareModalVisible = !shareModalVisible)} Icon={ShareFat}>Delen</Button>
+	<Button tabindex={1} onclick={() => ui.toggleAbout()} Icon={Info}>Over</Button>
+	<Button tabindex={2} onclick={() => ui.toggleShare()} Icon={ShareFat}>Delen</Button>
 </header>
 
 <style>
