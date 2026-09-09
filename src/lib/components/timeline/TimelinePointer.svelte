@@ -12,15 +12,7 @@
 
 		<path d="M 33 20 L 40 26 L 47 20 Z" />
 
-		<text
-			x="40"
-			y="15"
-			fill="var(--color-wtr-blue)"
-			font-family="Inter"
-			font-size="14"
-			font-weight="600"
-			text-anchor="middle"
-		>
+		<text x="40" y="15" fill="var(--color-wtr-blue)" font-size="14" font-weight="600" text-anchor="middle">
 			{year}
 		</text>
 	</svg>

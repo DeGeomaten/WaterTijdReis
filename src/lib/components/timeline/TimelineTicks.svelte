@@ -110,7 +110,6 @@
 			<text
 				x={x - 14}
 				y={22}
-				font-family="Inter"
 				font-size="12"
 				font-weight="700"
 				fill={timelineTickColor}
@@ -121,7 +120,6 @@
 			<text
 				x={x - 14}
 				y={22}
-				font-family="Inter"
 				font-size="12"
 				fill={timelineTickColor}
 				opacity={1 - (9 - pixelsPerYear) / 2}
@@ -132,7 +130,6 @@
 			<text
 				x={x - 14}
 				y={22}
-				font-family="Inter"
 				font-size="12"
 				fill={timelineTickColor}
 				opacity={1 - (38 - pixelsPerYear) / 3}
