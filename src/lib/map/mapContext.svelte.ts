@@ -133,17 +133,17 @@ export class MapContext {
 		const protocol = new pmtiles.Protocol();
 		maplibregl.addProtocol("pmtiles", protocol.tile);
 
-		const style = basemapStyle("nl");
-		style.layers.forEach((layer) => {
-			layer.layout = {
-				...layer.layout,
-				visibility: "none",
-			};
-		});
+		const protoStyle = basemapStyle("nl");
 
 		this.map = new maplibregl.Map({
 			container: containerId,
-			style,
+			style: {
+				version: 8,
+				glyphs: protoStyle.glyphs,
+				sprite: protoStyle.sprite,
+				sources: {},
+				layers: [],
+			},
 			center: [defaultState.lng, defaultState.lat],
 			zoom: defaultState.zoom,
 			minZoom: 5.5,
@@ -353,13 +353,46 @@ export class MapContext {
 		this.activeMap.setLayoutProperty("satelliet-layer", "visibility", visible ? "visible" : "none");
 	}
 
+	private protomapsLoaded = false;
+
 	setProtomapsVisiblity(visible: boolean) {
 		if (!this.maplibreLoaded) return;
 
-		const layers = this.activeMap.getStyle().layers || [];
-		layers.forEach((layer) => {
-			if (layer.source === "protomaps" || layer.type === "background") {
-				this.activeMap.setLayoutProperty(layer.id, "visibility", visible ? "visible" : "none");
+		if (visible && !this.protomapsLoaded) {
+			this.loadProtomaps();
+			this.protomapsLoaded = true;
+			return;
+		}
+
+		if (this.protomapsLoaded) {
+			const layers = this.activeMap.getStyle().layers || [];
+			layers.forEach((layer) => {
+				if (layer.source === "protomaps" || layer.id.startsWith("protomaps-")) {
+					this.activeMap.setLayoutProperty(layer.id, "visibility", visible ? "visible" : "none");
+				}
+			});
+		}
+	}
+
+	private loadProtomaps() {
+		const style = basemapStyle("nl");
+
+		if (style.glyphs && !this.activeMap.getStyle().glyphs) {
+			this.activeMap.setGlyphs(style.glyphs);
+		}
+
+		Object.entries(style.sources).forEach(([sourceId, sourceConfig]) => {
+			if (!this.activeMap.getSource(sourceId)) {
+				this.activeMap.addSource(sourceId, sourceConfig as maplibregl.SourceSpecification);
+			}
+		});
+
+		const existingLayers = this.activeMap.getStyle().layers || [];
+		const firstExistingLayerId = existingLayers.length > 0 ? existingLayers[0].id : undefined;
+
+		style.layers.forEach((layer) => {
+			if (!this.activeMap.getLayer(layer.id)) {
+				this.activeMap.addLayer(layer as maplibregl.LayerSpecification, firstExistingLayerId);
 			}
 		});
 	}
