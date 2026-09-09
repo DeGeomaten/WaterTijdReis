@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @plugin '@tailwindcss/typography';
+@import "@fontsource-variable/inter";
 
 @theme {
 	--color-wtr-blue: #333366;
@@ -7,7 +8,7 @@
 	--color-wtr-subtle-blue: #eef;
 	--color-wtr-pink: #ff44aa;
 
-	--font-sans: "Inter", "Helvetica Neue", sans-serif;
+	--font-sans: "Inter Variable", "Helvetica Neue", sans-serif;
 }
 
 :root {
