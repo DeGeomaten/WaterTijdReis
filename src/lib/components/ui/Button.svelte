@@ -44,6 +44,8 @@
 	let buttonRect = $state({ left: 0, top: 0, width: 0, height: 0 });
 	let hoverdelay: ReturnType<typeof setTimeout> | null = null;
 
+	let mounted: boolean = $state(false);
+
 	$effect(() => {
 		if (collapseAfterRender) {
 			const timer = setTimeout(() => (collapsed = true), collapseAfterRenderDelay);
@@ -57,6 +59,12 @@
 			for (const entry of entries) {
 				if (entry.borderBoxSize?.[0]) {
 					expandedWidth = entry.borderBoxSize[0].inlineSize;
+
+					if (!mounted) {
+						requestAnimationFrame(() => {
+							mounted = true;
+						});
+					}
 				}
 			}
 		});
@@ -147,6 +155,7 @@
 		<div
 			class="overflow-hidden transition-[width] duration-300 ease-out"
 			style:width="{collapsed ? 0 : expandedWidth}px"
+			style:transition={mounted ? undefined : "none"}
 		>
 			<div
 				bind:this={slotEl}
