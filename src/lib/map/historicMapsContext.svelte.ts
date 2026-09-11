@@ -5,21 +5,27 @@ import { WarpedMapLayer } from "@allmaps/maplibre";
 import { addOutlineLayers } from "./mapLayers.svelte";
 import * as turf from "@turf/turf";
 import { transformToIIIFInfoJson } from "$lib/utils/allmaps";
+import type { MapLayerMouseEvent } from "maplibre-gl";
+import type { MapView } from "$lib/types/map";
+import { calculateFilteredMapIds } from "./HistoricMapFilter";
 
 const ANNOTATION_URL = "maps-sorted-by-edition.json";
 
 export class HistoricMapsContext {
 	private mapContext: MapContext;
 
-	warpedMapLayer: WarpedMapLayer | null = $state(null);
+	warpedMapLayer: WarpedMapLayer = new WarpedMapLayer();
 
 	mapsLoaded = $state(false);
 	mapsById = new SvelteMap<string, HistoricMap>();
 	mapsByNumber: Map<number, HistoricMap[]> | undefined = $derived.by(() => {
 		if (!this.mapsLoaded) return;
 		const grouped = new Map<number, HistoricMap[]>();
-		for (const { number, ...rest } of this.mapsById.values())
-			(grouped.get(number) ?? grouped.set(number, []).get(number))!.unshift({ number, ...rest });
+		for (const sheet of this.mapsById.values()) {
+			const list = grouped.get(sheet.number) ?? [];
+			list.unshift(sheet);
+			grouped.set(sheet.number, list);
+		}
 		return grouped;
 	});
 
@@ -48,6 +54,7 @@ export class HistoricMapsContext {
 
 	selectedMapId: string | null = $state(null);
 	pinnedMapId: string | null = $state(null);
+
 	selectedMap: HistoricMap | null = $derived(
 		this.selectedMapId ? (this.mapsById.get(this.selectedMapId) ?? null) : null
 	);
@@ -86,7 +93,6 @@ export class HistoricMapsContext {
 	}
 
 	async init() {
-		this.warpedMapLayer = new WarpedMapLayer();
 		this.mapContext.map?.addLayer(this.warpedMapLayer);
 
 		this.warpedMapLayer.setLayerOptions({ visible: false });
@@ -94,19 +100,203 @@ export class HistoricMapsContext {
 
 		await this.load(ANNOTATION_URL);
 
+		this.mapContext.activeMap.on("click", "map-outlines-fill", (e) => this.handleMapClick(e));
 		this.mapContext.activeMap.on("mousemove", "map-outlines-fill", (e) => this.handleMapMouseMove(e));
-		this.mapContext.activeMap.on("mouseleave", "map-outlines-fill", (e) => this.handleMapMouseLeave());
-		this.mapContext.activeMap.on("moveend", () => {
-			this.updateViewportMaps();
-		});
-		this.mapContext.activeMap.on("click", "map-outlines-fill", (e) => {
-			this.handleMapClick(e);
-		});
+		this.mapContext.activeMap.on("mouseleave", "map-outlines-fill", () => this.handleMapMouseLeave());
+		this.mapContext.activeMap.on("moveend", this.updateViewportMaps.bind(this));
 
 		this.updateViewportMaps();
 
 		await this.warpedMapLayer.renderer?.tileCache.allRequestedTilesLoaded();
 		this.mapsLoaded = true;
+	}
+
+	async load(url: string) {
+		if (!this.mapContext.map || !this.warpedMapLayer) return;
+
+		try {
+			await this.#fetchAndAddMaps(url);
+			await this.#loadSprites();
+			this.#initOutlineSources();
+		} catch (error) {
+			console.error("HistoricMapsContext: Fout tijdens het laden:", error);
+		}
+	}
+
+	async #fetchAndAddMaps(url: string) {
+		const res = await fetch(url);
+		const data = await res.json();
+
+		this.mapContext.map?.on("maptilesloadedfromsprites", () => this.applyFilter());
+
+		const imageInfos = data.map(transformToIIIFInfoJson);
+		this.warpedMapLayer?.addImageInfos(imageInfos);
+
+		const loadPromises = data.map(async (item: any) => {
+			const id = await this.warpedMapLayer!.addGeoreferencedMap(item);
+			const warpedMap = this.warpedMapLayer!.getWarpedMap(id);
+
+			this.mapsById.set(id, {
+				id,
+				manifestId: item.resource.partOf[0].id,
+				polygon: {
+					type: "Polygon",
+					coordinates: [warpedMap?.geoMask.concat([warpedMap?.geoMask[0]])],
+				},
+				geoFullMaskBbox: warpedMap?.geoFullMaskBbox,
+				...item._meta,
+			});
+		});
+
+		await Promise.all(loadPromises);
+	}
+
+	async #loadSprites() {
+		const spriteJson = await fetch("/sprites/regular-sheets-128.json").then((r) => r.json());
+		this.warpedMapLayer?.addSprites(
+			spriteJson,
+			`${window.location.origin}/sprites/regular-sheets-128.jpg`,
+			[3072, 3078]
+		);
+	}
+
+	#initOutlineSources() {
+		const emptyFeatureCollection = { type: "FeatureCollection", features: [] };
+		this.mapContext.map?.addSource("map-outlines", { type: "geojson", data: emptyFeatureCollection });
+		this.mapContext.map?.addSource("map-labels", { type: "geojson", data: emptyFeatureCollection });
+		addOutlineLayers(this.mapContext);
+	}
+
+	setHistoricMapView(historicMap: HistoricMap, view?: MapView) {
+		if (!this.mapsLoaded) return;
+
+		this.#clickedFeatureId = null;
+		this.setSheetIndexVisibility(false);
+
+		this.#isolateHistoricMapLayer(historicMap.id);
+		this.mapContext.saveMapView();
+		this.#zoomToHistoricMap(historicMap, view);
+	}
+
+	#isolateHistoricMapLayer(selectedId: string) {
+		this.mapContext.savedLayerVisibility = {};
+		const layers = this.mapContext.activeMap.getStyle().layers;
+
+		for (const layer of layers) {
+			if (!layer.id.includes("warped-map-layer-")) {
+				const visibility = this.mapContext.activeMap.getLayoutProperty(layer.id, "visibility") as "visible" | "none";
+				this.mapContext.savedLayerVisibility[layer.id] = visibility || "visible";
+
+				if (visibility !== "none") {
+					this.mapContext.activeMap.setLayoutProperty(layer.id, "visibility", "none");
+				}
+			}
+		}
+
+		this.warpedMapLayer?.setLayerOptions({ opacity: 1 });
+		const mapsToHide = this.visibleMaps
+			.keys()
+			.filter((i) => i !== selectedId)
+			.toArray();
+		this.warpedMapLayer?.setMapsOptions(mapsToHide, { visible: false });
+		this.warpedMapLayer?.setMapOptions(selectedId, {
+			visible: true,
+			transformationType: "straight",
+			saturation: 1,
+			opacity: 1,
+			applyMask: false,
+		});
+	}
+
+	#zoomToHistoricMap(historicMap: HistoricMap, view?: MapView) {
+		if (view) {
+			this.mapContext.activeMap.easeTo(view);
+			return;
+		}
+
+		const bbox = this.warpedMapLayer?.getMapsBbox([historicMap.id], {
+			projection: { definition: "EPSG:4326" },
+		});
+
+		if (bbox) {
+			const [minX, minY, maxX, maxY] = bbox;
+			this.mapContext.activeMap.fitBounds(
+				[
+					[minX, minY],
+					[maxX, maxY],
+				],
+				{ padding: 88, speed: 2, curve: 1.8, essential: true }
+			);
+		}
+	}
+
+	changeHistoricMapView(historicMap: HistoricMap) {
+		if (!this.mapsLoaded) return;
+
+		const optionsByMapId = new Map();
+
+		optionsByMapId.set(this.selectedMapId, {
+			visible: false,
+			transformationType: "thinPlateSpline",
+			applyMask: true,
+		});
+
+		optionsByMapId.set(historicMap?.id, {
+			visible: true,
+			transformationType: "straight",
+			saturation: 1,
+			applyMask: false,
+		});
+
+		this.warpedMapLayer.setMapsOptionsByMapId(optionsByMapId, undefined, { animate: false });
+
+		const bbox = this.warpedMapLayer?.getMapsBbox([historicMap.id], {
+			projection: {
+				definition: "EPSG:4326",
+			},
+		});
+
+		if (bbox) {
+			const [minX, minY, maxX, maxY] = bbox;
+			this.mapContext.activeMap.fitBounds(
+				[
+					[minX, minY],
+					[maxX, maxY],
+				],
+				{ padding: 50, animate: false }
+			);
+		}
+
+		this.selectedMapId = historicMap.id;
+	}
+
+	applyFilter(filter: Filter = this.filter) {
+		if (!this.mapsByNumber || this.selectedMap) return;
+
+		const { mapsToColor, mapsToDesaturate, mapsToHide, adjustedYearEnd } = calculateFilteredMapIds(
+			this.mapsByNumber,
+			filter
+		);
+
+		filter.yearEnd = adjustedYearEnd;
+
+		const mapOptionsByMapId = new Map();
+		const defaultOptions = { applyMask: true, transformationType: "thinPlateSpline", saturation: 1 };
+
+		mapsToColor.forEach((id) => mapOptionsByMapId.set(id, { ...defaultOptions, visible: true }));
+		mapsToHide.forEach((id) => mapOptionsByMapId.set(id, { ...defaultOptions, visible: false }));
+		mapsToDesaturate.forEach((id) => mapOptionsByMapId.set(id, { ...defaultOptions, visible: true, saturation: 0 }));
+
+		this.warpedMapLayer?.setMapsOptionsByMapId(mapOptionsByMapId);
+
+		mapsToHide.forEach((id) => this.visibleMaps.delete(id));
+		[...mapsToColor, ...mapsToDesaturate].forEach((id) => {
+			const historicMap = this.mapsById.get(id);
+			if (historicMap) this.visibleMaps.set(id, historicMap);
+		});
+
+		this.updateMapOutlines();
+		this.mapContext.toastContent = `Je ziet nu kaarten van ${Math.round(filter.yearEnd)} en ouder`;
 	}
 
 	private updateViewportMaps() {
@@ -146,7 +336,7 @@ export class HistoricMapsContext {
 		labelsSource?.setData({ type: "FeatureCollection", features: points });
 	}
 
-	handleMapClick(e: any) {
+	handleMapClick(e: MapLayerMouseEvent) {
 		const clickedLngLat = e.lngLat;
 		const feature = e.features?.[0];
 		if (!feature) return;
@@ -155,7 +345,7 @@ export class HistoricMapsContext {
 		const historicMap = this.mapsById.get(mapId) || null;
 
 		if (this.#shouldOpenImmediately(historicMap)) {
-			this.selectedMapId = historicMap?.id;
+			this.selectedMapId = historicMap?.id ?? null;
 			return;
 		}
 
@@ -174,6 +364,36 @@ export class HistoricMapsContext {
 		if (!this.#clickedMapTimeout) return;
 		clearTimeout(this.#clickedMapTimeout);
 		this.#clickedMapTimeout = setTimeout(() => (this.#clickedFeatureId = null), delay);
+	}
+
+	handleMapMouseMove(e: MapLayerMouseEvent) {
+		const feature = e.features?.[0];
+		if (!feature) return;
+
+		if (this.#hoveredFeatureId !== null && this.#hoveredFeatureId !== feature.id) {
+			this.mapContext.activeMap.setFeatureState(
+				{ source: "map-outlines", id: this.#hoveredFeatureId },
+				{ hover: false }
+			);
+		}
+
+		this.#hoveredFeatureId = feature.id;
+		this.mapContext.activeMap.setFeatureState({ source: "map-outlines", id: this.#hoveredFeatureId }, { hover: true });
+
+		const mapId = feature.properties?.id;
+		this.hoveredHistoricMap = this.mapsById.get(mapId) || null;
+	}
+
+	handleMapMouseLeave() {
+		if (this.#hoveredFeatureId !== null) {
+			this.mapContext.activeMap.setFeatureState(
+				{ source: "map-outlines", id: this.#hoveredFeatureId },
+				{ hover: false }
+			);
+		}
+
+		this.#hoveredFeatureId = null;
+		this.hoveredHistoricMap = null;
 	}
 
 	setGridVisibility(isVisible: boolean, centerLngLat = { lng: 5.63, lat: 52.16 }, rippleScale = 3, speed = 300) {
@@ -290,305 +510,5 @@ export class HistoricMapsContext {
 				}, 1000)
 			);
 		});
-	}
-
-	async load(url: string) {
-		if (!this.mapContext.map || !this.warpedMapLayer) return;
-
-		try {
-			const res = await fetch(url);
-			const data = await res.json();
-
-			this.mapContext.map.on("maptilesloadedfromsprites", () => {
-				// this.mapsLoaded = true;
-				this.applyFilter();
-			});
-
-			const imageInfos = data.map(transformToIIIFInfoJson);
-			this.warpedMapLayer.addImageInfos(imageInfos);
-
-			const loadPromises = data.map(async (item: any) => {
-				const id = await this.warpedMapLayer.addGeoreferencedMap(item);
-				const warpedMap = this.warpedMapLayer.getWarpedMap(id);
-
-				const coordinates = [warpedMap?.geoMask.concat([warpedMap?.geoMask[0]])];
-
-				const historicMap: HistoricMap = {
-					id,
-					manifestId: item.resource.partOf[0].id,
-					polygon: {
-						type: "Polygon",
-						coordinates,
-					},
-					geoFullMaskBbox: warpedMap?.geoFullMaskBbox,
-					...item._meta,
-				};
-
-				this.mapsById.set(id, historicMap);
-			});
-
-			await Promise.all(loadPromises);
-
-			const spriteJson = await fetch("/sprites/regular-sheets-128.json").then((r) => r.json());
-			this.warpedMapLayer.addSprites(
-				spriteJson,
-				`${window.location.origin}/sprites/regular-sheets-128.jpg`,
-				[3072, 3078]
-			);
-
-			const emptyFeatureCollection = { type: "FeatureCollection", features: [] };
-
-			this.mapContext.map.addSource("map-outlines", {
-				type: "geojson",
-				data: emptyFeatureCollection,
-			});
-
-			this.mapContext.map.addSource("map-labels", {
-				type: "geojson",
-				data: emptyFeatureCollection,
-			});
-
-			addOutlineLayers(this.mapContext);
-		} catch (error) {
-			console.error("HistoricMapsContext: Fout tijdens het laden van de kaarten of sprites:", error);
-		}
-	}
-
-	applyFilter(filter: Filter = this.filter) {
-		if (!this.mapsByNumber || this.selectedMap) return;
-
-		let maxYear = 0;
-		filter.yearStart = Math.min(filter.yearEnd - 1, filter.yearStart);
-
-		const mapsToColor: string[] = [];
-		const mapsToDesaturate: string[] = [];
-
-		this.mapsByNumber.forEach((sheets) => {
-			let x1, y1, x2, y2;
-			const firstEdYearEnd = 1894;
-
-			for (const sheet of sheets) {
-				const { x, y, yearEnd: year, edition, bis, type, id } = sheet;
-				maxYear = Math.max(maxYear, year);
-				const maxYearFilter = filter.yearEnd > firstEdYearEnd ? filter.yearEnd : firstEdYearEnd;
-				const periodFilter = filter.edition !== "All" || year <= maxYearFilter;
-				const editionFilter = filter.edition === "All" || edition === filter.edition;
-				const typeFilter = filter.type ? type === filter.type : !type;
-				const bisFilter = filter.bis === true || !bis;
-				const inScope = periodFilter && editionFilter && typeFilter && bisFilter;
-				if (!inScope) continue;
-
-				const stack = year >= filter.yearStart && year <= filter.yearEnd ? mapsToColor : mapsToDesaturate;
-
-				if (x1 === undefined) {
-					stack.push(id);
-					[x1, y1] = [x, y];
-
-					if (!x1 && !y1) break;
-				} else if (y1 && x === x1 && y === -y1) {
-					stack.push(id);
-					y1 = 0;
-
-					if (!x1) break;
-				} else if (x1 && !x2 && x === -x1) {
-					stack.push(id);
-					[x2, y2] = [x, y];
-
-					if (!y1 && !y) break;
-				} else if (y2 && x === x2 && y === -y2) {
-					stack.push(id);
-					y2 = 0;
-
-					if (!y1) break;
-				}
-			}
-		});
-
-		filter.yearEnd = Math.min(maxYear, filter.yearEnd);
-
-		const mapsToShow = mapsToColor.concat(mapsToDesaturate);
-		const visibleHistoricMapIds = this.visibleMaps.keys().toArray();
-
-		const mapsToHide = visibleHistoricMapIds.filter((id) => !mapsToShow.includes(id));
-		const mapsToAdd = mapsToShow.filter((id) => !visibleHistoricMapIds.includes(id));
-
-		const mapOptionsByMapId = new Map();
-
-		const defaultOptions = {
-			applyMask: true,
-			transformationType: "thinPlateSpline",
-			saturation: 1,
-		};
-
-		mapsToColor.forEach((id) =>
-			mapOptionsByMapId.set(id, {
-				...defaultOptions,
-				visible: true,
-			})
-		);
-		mapsToHide.forEach((id) =>
-			mapOptionsByMapId.set(id, {
-				...defaultOptions,
-				visible: false,
-			})
-		);
-		mapsToDesaturate.forEach((id) =>
-			mapOptionsByMapId.set(id, {
-				...defaultOptions,
-				visible: true,
-				saturation: 0,
-			})
-		);
-
-		this.warpedMapLayer?.setMapsOptionsByMapId(mapOptionsByMapId);
-
-		mapsToHide.forEach((id) => this.visibleMaps.delete(id));
-		mapsToAdd.forEach((id) => {
-			const historicMap = this.mapsById.get(id);
-			if (historicMap) {
-				this.visibleMaps.set(id, historicMap);
-			}
-		});
-
-		this.updateMapOutlines();
-
-		this.mapContext.toastContent = `Je ziet nu kaarten van ${Math.round(filter.yearEnd)} en ouder`;
-	}
-
-	setHistoricMapView(historicMap: HistoricMap, view?: MapView | undefined) {
-		if (!this.mapsLoaded) return;
-
-		this.#clickedFeatureId = null;
-		this.setSheetIndexVisibility(false);
-
-		this.mapContext.savedLayerVisibility = {};
-		const layers = this.mapContext.activeMap.getStyle().layers;
-
-		for (const layer of layers) {
-			if (!layer.id.includes("warped-map-layer-")) {
-				const visibility = this.mapContext.activeMap.getLayoutProperty(layer.id, "visibility") as "visible" | "none";
-				this.mapContext.savedLayerVisibility[layer.id] = visibility || "visible";
-
-				if (visibility !== "none") {
-					this.mapContext.activeMap.setLayoutProperty(layer.id, "visibility", "none");
-				}
-			}
-		}
-
-		this.warpedMapLayer.setLayerOptions({ opacity: 1 });
-
-		const { id } = historicMap;
-		const mapsToHide = this.visibleMaps
-			.keys()
-			.filter((i) => i != id)
-			.toArray();
-		this.warpedMapLayer.setMapsOptions(mapsToHide, {
-			visible: false,
-		});
-		this.warpedMapLayer.setMapOptions(id, {
-			visible: true,
-			transformationType: "straight",
-			saturation: 1,
-			opacity: 1,
-			applyMask: false,
-		});
-
-		this.selectedMapId = historicMap.id;
-
-		this.mapContext.saveMapView();
-
-		if (view) {
-			this.mapContext.activeMap.easeTo(view);
-		} else {
-			const bbox = this.warpedMapLayer.getMapsBbox([historicMap.id], {
-				projection: {
-					definition: "EPSG:4326",
-				},
-			});
-			if (bbox) {
-				const [minX, minY, maxX, maxY] = bbox;
-				setTimeout(
-					() =>
-						this.mapContext.activeMap.fitBounds(
-							[
-								[minX, minY],
-								[maxX, maxY],
-							],
-							{ padding: 88, speed: 2, curve: 1.8, essential: true }
-						),
-					250
-				);
-			}
-		}
-	}
-
-	changeHistoricMapView(historicMap: HistoricMap) {
-		if (!this.mapsLoaded) return;
-
-		const optionsByMapId = new Map();
-
-		optionsByMapId.set(this.selectedMapId, {
-			visible: false,
-			transformationType: "thinPlateSpline",
-			applyMask: true,
-		});
-
-		optionsByMapId.set(historicMap?.id, {
-			visible: true,
-			transformationType: "straight",
-			saturation: 1,
-			applyMask: false,
-		});
-
-		this.warpedMapLayer.setMapsOptionsByMapId(optionsByMapId, undefined, { animate: false });
-
-		const bbox = this.warpedMapLayer?.getMapsBbox([historicMap.id], {
-			projection: {
-				definition: "EPSG:4326",
-			},
-		});
-
-		if (bbox) {
-			const [minX, minY, maxX, maxY] = bbox;
-			this.mapContext.activeMap.fitBounds(
-				[
-					[minX, minY],
-					[maxX, maxY],
-				],
-				{ padding: 50, animate: false }
-			);
-		}
-
-		this.selectedMapId = historicMap.id;
-	}
-
-	handleMapMouseMove(e: any) {
-		const feature = e.features?.[0];
-		if (!feature) return;
-
-		if (this.#hoveredFeatureId !== null && this.#hoveredFeatureId !== feature.id) {
-			this.mapContext.activeMap.setFeatureState(
-				{ source: "map-outlines", id: this.#hoveredFeatureId },
-				{ hover: false }
-			);
-		}
-
-		this.#hoveredFeatureId = feature.id;
-		this.mapContext.activeMap.setFeatureState({ source: "map-outlines", id: this.#hoveredFeatureId }, { hover: true });
-
-		const mapId = feature.properties?.id;
-		this.hoveredHistoricMap = this.mapsById.get(mapId) || null;
-	}
-
-	handleMapMouseLeave() {
-		if (this.#hoveredFeatureId !== null) {
-			this.mapContext.activeMap.setFeatureState(
-				{ source: "map-outlines", id: this.#hoveredFeatureId },
-				{ hover: false }
-			);
-		}
-
-		this.#hoveredFeatureId = null;
-		this.hoveredHistoricMap = null;
 	}
 }

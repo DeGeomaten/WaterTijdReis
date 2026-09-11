@@ -327,7 +327,7 @@ export class MapContext {
 				transformationType: "thinPlateSpline",
 				applyMask: true,
 			});
-			this.historic.selectedMap = null;
+			this.historic.selectedMapId = null;
 		}
 
 		this.historic.applyFilter(this.historic.filter);

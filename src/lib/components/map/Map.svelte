@@ -76,7 +76,8 @@
 
 <AppHeader />
 
-<Timeline visible={mapContext.historic.mapsLoaded && !mapContext.historic.selectedMap}></Timeline>
+<Timeline visible={mapContext.maplibreLoaded && mapContext.historic.mapsLoaded && !mapContext.historic.selectedMap}
+></Timeline>
 
 <Minimap></Minimap>
 <HistoricMapInfo></HistoricMapInfo>
