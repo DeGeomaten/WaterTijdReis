@@ -97,12 +97,11 @@
 
 	$effect(() => {
 		if (visible) {
-			// A small timeout helps mobile browsers open up the keyboard correctly
 			inputEl?.focus();
-			setTimeout(() => {
-				inputEl?.focus();
+
+			requestAnimationFrame(() => {
 				updateFocusableElements();
-			}, 50);
+			});
 		} else {
 			inputValue = "";
 			firstResultsFetched = false;
@@ -200,7 +199,10 @@
 			type="button"
 			class="bg-wtr-blue/66 absolute inset-0 cursor-default bg-[url('/wave_pattern.png')] bg-size-[32px]"
 			aria-label="Sluit venster"
-			onclick={close}
+			onclick={(e) => {
+				e.stopPropagation();
+				close();
+			}}
 			transition:fly={{ y: -5, duration: 250 }}
 		></button>
 

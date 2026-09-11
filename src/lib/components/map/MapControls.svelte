@@ -77,7 +77,15 @@
 >
 	{#if !mapContext.historic.selectedMap}
 		<div transition:fly={{ x: 100, duration: 250 }}>
-			<Button tabindex={5} Icon={MagnifyingGlass} kbd="⌘K" onclick={() => ui.openSearch()}>Zoek plaats ...</Button>
+			<Button
+				tabindex={5}
+				Icon={MagnifyingGlass}
+				kbd="⌘K"
+				onclick={(e) => {
+					e?.stopPropagation();
+					ui.openSearch();
+				}}>Zoek plaats ...</Button
+			>
 		</div>
 
 		<div transition:fly={{ x: 100, duration: 250 }}>
