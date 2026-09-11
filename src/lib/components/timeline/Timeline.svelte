@@ -40,6 +40,7 @@
 		},
 		{ stiffness: 0.1, damping: 0.5 }
 	);
+	let isInitialView = true;
 
 	$effect(() => {
 		if (width > 0 && pixelsPerYear > 0) {
@@ -47,7 +48,10 @@
 			const newStart = Math.max(mapContext.historic.filter.yearEnd - halfRange, MIN_YEAR);
 			const newEnd = Math.min(mapContext.historic.filter.yearEnd + halfRange, MAX_YEAR);
 
-			view.set({ start: newStart, end: newEnd });
+			if (isInitialView) {
+				view.set({ start: newStart, end: newEnd }, { instant: true });
+				isInitialView = false;
+			} else view.set({ start: newStart, end: newEnd });
 		}
 	});
 
