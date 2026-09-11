@@ -12,8 +12,6 @@
 	let leftBtnWidth = $state(86);
 	let rightBtnWidth = $state(0);
 
-	let pinnedView = $state(null);
-
 	function leftBtnClick() {
 		rightBtnSelected = false;
 		if (
@@ -21,7 +19,7 @@
 			mapContext.historic.selectedMapId &&
 			mapContext.historic.pinnedMapId == mapContext.historic.selectedMapId
 		)
-			pinnedView = mapContext.saveMapView(false);
+			mapContext.historic.pinnedMapView = mapContext.saveMapView(false);
 		mapContext.historic.selectedMapId = null;
 		mapContext.historic.setSheetIndexVisibility(false);
 	}
@@ -135,7 +133,10 @@
 				onclick={(e) => {
 					e.stopPropagation();
 					if (mapContext.historic.pinnedMapId) mapContext.historic.pinnedMapId = null;
-					else mapContext.historic.pinnedMapId = mapContext.historic.selectedMapId;
+					else {
+						mapContext.historic.pinnedMapView = mapContext.saveMapView(false);
+						mapContext.historic.pinnedMapId = mapContext.historic.selectedMapId;
+					}
 				}}
 			>
 				{#if mapContext.historic.pinnedMap && mapContext.historic.pinnedMapId == mapContext.historic.selectedMapId}

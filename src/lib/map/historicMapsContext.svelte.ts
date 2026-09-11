@@ -1,25 +1,63 @@
 import type { Filter, HistoricMap } from "$lib/types/historicmap";
-import { SvelteMap } from "svelte/reactivity";
 import type { MapContext } from "./mapContext.svelte";
 import { WarpedMapLayer } from "@allmaps/maplibre";
 import { addOutlineLayers } from "./mapLayers.svelte";
 import * as turf from "@turf/turf";
-import { transformToIIIFInfoJson } from "$lib/utils/allmaps";
-import type { MapLayerMouseEvent } from "maplibre-gl";
+import type { MapLayerMouseEvent, GeoJSONSource } from "maplibre-gl";
 import type { MapView } from "$lib/types/map";
-import { calculateFilteredMapIds } from "./HistoricMapFilter";
+import { HistoricMapSeries } from "./HistoricMapSeries.svelte";
 
-const ANNOTATION_URL = "maps-sorted-by-edition.json";
+const WATERSTAATSKAARTEN_URL = "maps-sorted-by-edition.json";
+const WATERSTAATSKAARTEN_SPRITE_JSON = "/sprites/regular-sheets-128.json";
+const WATERSTAATSKAARTEN_SPRITE_IMG = "/sprites/regular-sheets-128.jpg";
 
 export class HistoricMapsContext {
-	private mapContext: MapContext;
-
+	mapContext: MapContext;
 	warpedMapLayer: WarpedMapLayer = new WarpedMapLayer();
 
-	mapsLoaded = $state(false);
-	mapsById = new SvelteMap<string, HistoricMap>();
-	mapsByNumber: Map<number, HistoricMap[]> | undefined = $derived.by(() => {
-		if (!this.mapsLoaded) return;
+	series = $state<HistoricMapSeries[]>([]);
+
+	// -------------------------------------------------------------
+	// For backwards compatibility: HistoricMapsContext supports series, the UI does not (yet), as 'waterstaatskaarten' is now the only series:
+	// here, filter is a reference to the 'waterstaatskaarten'-series filter, and mapsById, visibleMaps, and mapsByNumber are aggregated across 'all' series.
+	// -------------------------------------------------------------
+	get filter(): Filter {
+		return (
+			this.series[0]?.filter ?? {
+				yearStart: 1865,
+				yearEnd: 1983,
+				edition: "All",
+				bis: false,
+				type: undefined,
+			}
+		);
+	}
+
+	get mapsLoaded(): boolean {
+		return this.series.length > 0 && this.series.every((s) => s.mapsLoaded);
+	}
+
+	mapsById: Map<string, HistoricMap> = $derived.by(() => {
+		const aggregated = new Map<string, HistoricMap>();
+		for (const s of this.series) {
+			for (const [id, map] of s.mapsById) {
+				aggregated.set(id, map);
+			}
+		}
+		return aggregated;
+	});
+
+	visibleMaps: Map<string, HistoricMap> = $derived.by(() => {
+		const aggregated = new Map<string, HistoricMap>();
+		for (const s of this.series) {
+			for (const [id, map] of s.visibleMaps) {
+				aggregated.set(id, map);
+			}
+		}
+		return aggregated;
+	});
+
+	mapsByNumber: Map<number, HistoricMap[]> = $derived.by(() => {
 		const grouped = new Map<number, HistoricMap[]>();
 		for (const sheet of this.mapsById.values()) {
 			const list = grouped.get(sheet.number) ?? [];
@@ -30,7 +68,6 @@ export class HistoricMapsContext {
 	});
 
 	#mapIdsInViewport = $state<string[]>([]);
-	visibleMaps = new SvelteMap<string, HistoricMap>();
 
 	mapsInViewport = $derived.by(() => {
 		const maps = new Map<string, HistoricMap>();
@@ -52,6 +89,8 @@ export class HistoricMapsContext {
 		return maps;
 	});
 
+	// Selected (by double clicking / clicking a thumbnail / etc.) and pinned maps,
+	// this works by having a single 'source-of-truth', the HistoricMap IDs; selectedMap/pinnedMap is derived from this ID and setHistoricMapView is called by the $effect in the constructor
 	selectedMapId: string | null = $state(null);
 	pinnedMapId: string | null = $state(null);
 
@@ -59,6 +98,7 @@ export class HistoricMapsContext {
 		this.selectedMapId ? (this.mapsById.get(this.selectedMapId) ?? null) : null
 	);
 	pinnedMap: HistoricMap | null = $derived(this.pinnedMapId ? (this.mapsById.get(this.pinnedMapId) ?? null) : null);
+	pinnedMapView: MapView | null = $state(null);
 
 	hoveredHistoricMap = $state<HistoricMap | null>(null);
 	clickedHistoricMap = $state<HistoricMap | null>(null);
@@ -66,20 +106,14 @@ export class HistoricMapsContext {
 	#hoveredFeatureId = $state<number | null>(null);
 	#clickedFeatureId = $state<number | null>(null);
 
+	// Grid & ripple-effects
 	gridVisible = $state(false);
 	#gridResetTimer: ReturnType<typeof setTimeout> | null = null;
 	#gridVisibilityTimer: ReturnType<typeof setTimeout> | null = null;
 	#rippleResetTimer: ReturnType<typeof setTimeout> | null = null;
 	#featureTimeouts: Record<number | string, ReturnType<typeof setTimeout>> = {};
 	#clickedMapTimeout: ReturnType<typeof setTimeout> | null = null;
-
-	filter: Filter = $state({
-		yearStart: 1865,
-		yearEnd: 1983,
-		edition: "All",
-		bis: false,
-		type: undefined,
-	});
+	#fillTimers = new Map<number, ReturnType<typeof setTimeout>>();
 
 	constructor(mapContext: MapContext) {
 		this.mapContext = mapContext;
@@ -87,77 +121,46 @@ export class HistoricMapsContext {
 		$effect(() => {
 			if (!this.mapsLoaded) return;
 
-			if (this.selectedMap) this.setHistoricMapView(this.selectedMap);
-			else this.mapContext.restoreView();
+			if (this.selectedMap) {
+				const view = this.selectedMapId === this.pinnedMapId ? this.pinnedMapView : null;
+				this.setHistoricMapView(this.selectedMap, view);
+			} else {
+				this.mapContext.restoreView();
+			}
 		});
 	}
 
 	async init() {
 		this.mapContext.map?.addLayer(this.warpedMapLayer);
-
 		this.warpedMapLayer.setLayerOptions({ visible: false });
 		this.warpedMapLayer.getWarpedMapList().options.animatedOptions.push("opacity");
 
-		await this.load(ANNOTATION_URL);
+		const defaultSeries = new HistoricMapSeries(
+			this,
+			"wsk",
+			"Waterstaatkaarten",
+			WATERSTAATSKAARTEN_URL,
+			WATERSTAATSKAARTEN_SPRITE_JSON,
+			WATERSTAATSKAARTEN_SPRITE_IMG
+		);
+		this.series.push(defaultSeries);
+
+		this.#initOutlineSources();
+
+		this.mapContext.map?.on("maptilesloadedfromsprites", () => {
+			this.series.forEach((s) => s.applyFilter());
+		});
+
+		await Promise.all(this.series.map((s) => s.load()));
 
 		this.mapContext.activeMap.on("click", "map-outlines-fill", (e) => this.handleMapClick(e));
 		this.mapContext.activeMap.on("mousemove", "map-outlines-fill", (e) => this.handleMapMouseMove(e));
 		this.mapContext.activeMap.on("mouseleave", "map-outlines-fill", () => this.handleMapMouseLeave());
-		this.mapContext.activeMap.on("moveend", this.updateViewportMaps.bind(this));
+		this.mapContext.activeMap.on("moveend", () => this.updateViewportMaps());
 
 		this.updateViewportMaps();
 
 		await this.warpedMapLayer.renderer?.tileCache.allRequestedTilesLoaded();
-		this.mapsLoaded = true;
-	}
-
-	async load(url: string) {
-		if (!this.mapContext.map || !this.warpedMapLayer) return;
-
-		try {
-			await this.#fetchAndAddMaps(url);
-			await this.#loadSprites();
-			this.#initOutlineSources();
-		} catch (error) {
-			console.error("HistoricMapsContext: Fout tijdens het laden:", error);
-		}
-	}
-
-	async #fetchAndAddMaps(url: string) {
-		const res = await fetch(url);
-		const data = await res.json();
-
-		this.mapContext.map?.on("maptilesloadedfromsprites", () => this.applyFilter());
-
-		const imageInfos = data.map(transformToIIIFInfoJson);
-		this.warpedMapLayer?.addImageInfos(imageInfos);
-
-		const loadPromises = data.map(async (item: any) => {
-			const id = await this.warpedMapLayer!.addGeoreferencedMap(item);
-			const warpedMap = this.warpedMapLayer!.getWarpedMap(id);
-
-			this.mapsById.set(id, {
-				id,
-				manifestId: item.resource.partOf[0].id,
-				polygon: {
-					type: "Polygon",
-					coordinates: [warpedMap?.geoMask.concat([warpedMap?.geoMask[0]])],
-				},
-				geoFullMaskBbox: warpedMap?.geoFullMaskBbox,
-				...item._meta,
-			});
-		});
-
-		await Promise.all(loadPromises);
-	}
-
-	async #loadSprites() {
-		const spriteJson = await fetch("/sprites/regular-sheets-128.json").then((r) => r.json());
-		this.warpedMapLayer?.addSprites(
-			spriteJson,
-			`${window.location.origin}/sprites/regular-sheets-128.jpg`,
-			[3072, 3078]
-		);
 	}
 
 	#initOutlineSources() {
@@ -167,7 +170,11 @@ export class HistoricMapsContext {
 		addOutlineLayers(this.mapContext);
 	}
 
-	setHistoricMapView(historicMap: HistoricMap, view?: MapView) {
+	applyFilter(filter: Filter = this.filter) {
+		this.series.forEach((s) => s.applyFilter(filter));
+	}
+
+	setHistoricMapView(historicMap: HistoricMap, view?: MapView | null) {
 		if (!this.mapsLoaded) return;
 
 		this.#clickedFeatureId = null;
@@ -193,13 +200,11 @@ export class HistoricMapsContext {
 			}
 		}
 
-		this.warpedMapLayer?.setLayerOptions({ opacity: 1 });
-		const mapsToHide = this.visibleMaps
-			.keys()
-			.filter((i) => i !== selectedId)
-			.toArray();
-		this.warpedMapLayer?.setMapsOptions(mapsToHide, { visible: false });
-		this.warpedMapLayer?.setMapOptions(selectedId, {
+		this.warpedMapLayer.setLayerOptions({ opacity: 1 });
+		const mapsToHide = Array.from(this.visibleMaps.keys()).filter((id) => id !== selectedId);
+
+		this.warpedMapLayer.setMapsOptions(mapsToHide, { visible: false });
+		this.warpedMapLayer.setMapOptions(selectedId, {
 			visible: true,
 			transformationType: "straight",
 			saturation: 1,
@@ -208,13 +213,13 @@ export class HistoricMapsContext {
 		});
 	}
 
-	#zoomToHistoricMap(historicMap: HistoricMap, view?: MapView) {
+	#zoomToHistoricMap(historicMap: HistoricMap, view?: MapView | null) {
 		if (view) {
 			this.mapContext.activeMap.easeTo(view);
 			return;
 		}
 
-		const bbox = this.warpedMapLayer?.getMapsBbox([historicMap.id], {
+		const bbox = this.warpedMapLayer.getMapsBbox([historicMap.id], {
 			projection: { definition: "EPSG:4326" },
 		});
 
@@ -235,13 +240,15 @@ export class HistoricMapsContext {
 
 		const optionsByMapId = new Map();
 
-		optionsByMapId.set(this.selectedMapId, {
-			visible: false,
-			transformationType: "thinPlateSpline",
-			applyMask: true,
-		});
+		if (this.selectedMapId) {
+			optionsByMapId.set(this.selectedMapId, {
+				visible: false,
+				transformationType: "thinPlateSpline",
+				applyMask: true,
+			});
+		}
 
-		optionsByMapId.set(historicMap?.id, {
+		optionsByMapId.set(historicMap.id, {
 			visible: true,
 			transformationType: "straight",
 			saturation: 1,
@@ -250,10 +257,8 @@ export class HistoricMapsContext {
 
 		this.warpedMapLayer.setMapsOptionsByMapId(optionsByMapId, undefined, { animate: false });
 
-		const bbox = this.warpedMapLayer?.getMapsBbox([historicMap.id], {
-			projection: {
-				definition: "EPSG:4326",
-			},
+		const bbox = this.warpedMapLayer.getMapsBbox([historicMap.id], {
+			projection: { definition: "EPSG:4326" },
 		});
 
 		if (bbox) {
@@ -270,43 +275,14 @@ export class HistoricMapsContext {
 		this.selectedMapId = historicMap.id;
 	}
 
-	applyFilter(filter: Filter = this.filter) {
-		if (!this.mapsByNumber || this.selectedMap) return;
-
-		const { mapsToColor, mapsToDesaturate, mapsToHide, adjustedYearEnd } = calculateFilteredMapIds(
-			this.mapsByNumber,
-			filter
-		);
-
-		filter.yearEnd = adjustedYearEnd;
-
-		const mapOptionsByMapId = new Map();
-		const defaultOptions = { applyMask: true, transformationType: "thinPlateSpline", saturation: 1 };
-
-		mapsToColor.forEach((id) => mapOptionsByMapId.set(id, { ...defaultOptions, visible: true }));
-		mapsToHide.forEach((id) => mapOptionsByMapId.set(id, { ...defaultOptions, visible: false }));
-		mapsToDesaturate.forEach((id) => mapOptionsByMapId.set(id, { ...defaultOptions, visible: true, saturation: 0 }));
-
-		this.warpedMapLayer?.setMapsOptionsByMapId(mapOptionsByMapId);
-
-		mapsToHide.forEach((id) => this.visibleMaps.delete(id));
-		[...mapsToColor, ...mapsToDesaturate].forEach((id) => {
-			const historicMap = this.mapsById.get(id);
-			if (historicMap) this.visibleMaps.set(id, historicMap);
-		});
-
-		this.updateMapOutlines();
-		this.mapContext.toastContent = `Je ziet nu kaarten van ${Math.round(filter.yearEnd)} en ouder`;
-	}
-
-	private updateViewportMaps() {
-		const reference = this.warpedMapLayer?.renderer?.mapsInViewport;
+	updateViewportMaps() {
+		const reference = this.warpedMapLayer.renderer?.mapsInViewport;
 		if (reference) {
 			this.#mapIdsInViewport = Array.from(reference);
 		}
 	}
 
-	private updateMapOutlines() {
+	updateMapOutlines() {
 		const map = this.mapContext.activeMap;
 		const mapsArray = Array.from(this.visibleMaps.values());
 
@@ -329,10 +305,10 @@ export class HistoricMapsContext {
 			},
 		}));
 
-		const outlinesSource = map.getSource("map-outlines") as maplibregl.GeoJSONSource | undefined;
+		const outlinesSource = map.getSource("map-outlines") as GeoJSONSource | undefined;
 		outlinesSource?.setData({ type: "FeatureCollection", features: polygons });
 
-		const labelsSource = map.getSource("map-labels") as maplibregl.GeoJSONSource | undefined;
+		const labelsSource = map.getSource("map-labels") as GeoJSONSource | undefined;
 		labelsSource?.setData({ type: "FeatureCollection", features: points });
 	}
 
@@ -356,14 +332,8 @@ export class HistoricMapsContext {
 			this.setGridVisibility(false, clickedLngLat);
 		}, 1500);
 
-		this.#handleMapSelection(historicMap, feature.id);
-		this.#triggerFillFlashAnimation(feature.id);
-	}
-
-	extendClickedMapTimeout(delay = 2500) {
-		if (!this.#clickedMapTimeout) return;
-		clearTimeout(this.#clickedMapTimeout);
-		this.#clickedMapTimeout = setTimeout(() => (this.#clickedFeatureId = null), delay);
+		this.#handleMapSelection(historicMap, Number(feature.id));
+		this.#triggerFillFlashAnimation(Number(feature.id));
 	}
 
 	handleMapMouseMove(e: MapLayerMouseEvent) {
@@ -377,7 +347,7 @@ export class HistoricMapsContext {
 			);
 		}
 
-		this.#hoveredFeatureId = feature.id;
+		this.#hoveredFeatureId = Number(feature.id);
 		this.mapContext.activeMap.setFeatureState({ source: "map-outlines", id: this.#hoveredFeatureId }, { hover: true });
 
 		const mapId = feature.properties?.id;
@@ -394,6 +364,12 @@ export class HistoricMapsContext {
 
 		this.#hoveredFeatureId = null;
 		this.hoveredHistoricMap = null;
+	}
+
+	extendClickedMapTimeout(delay = 2500) {
+		if (!this.#clickedMapTimeout) return;
+		clearTimeout(this.#clickedMapTimeout);
+		this.#clickedMapTimeout = setTimeout(() => (this.#clickedFeatureId = null), delay);
 	}
 
 	setGridVisibility(isVisible: boolean, centerLngLat = { lng: 5.63, lat: 52.16 }, rippleScale = 3, speed = 300) {
@@ -478,14 +454,9 @@ export class HistoricMapsContext {
 
 	#shouldOpenImmediately(historicMap: HistoricMap | null): boolean {
 		if (!historicMap) return false;
-
 		if (this.mapContext.sheetIndexVisible) return true;
-
-		const isDoubleClicked = this.clickedHistoricMap?.id === historicMap.id;
-		return isDoubleClicked;
+		return this.clickedHistoricMap?.id === historicMap.id;
 	}
-
-	#fillTimers = new Map<number, ReturnType<typeof setTimeout>>();
 
 	#triggerFillFlashAnimation(featureId: number) {
 		if (this.#clickedFeatureId !== null && this.#clickedFeatureId !== featureId) {
