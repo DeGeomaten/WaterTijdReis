@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import '../app.css';
-	import { UmamiAnalytics, trackPageView } from '@lukulent/svelte-umami';
-	import { env } from '$env/dynamic/public';
+	import { onMount } from "svelte";
+	import "../app.css";
+	import { UmamiAnalytics, trackPageView } from "@lukulent/svelte-umami";
+	import { env } from "$env/dynamic/public";
 
 	let { children } = $props();
 
@@ -21,7 +21,7 @@
 		{websiteID}
 		{srcURL}
 		configuration={{
-			'data-auto-track': false
+			"data-auto-track": false,
 		}}
 	/>
 {/if}

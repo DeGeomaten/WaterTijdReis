@@ -1,7 +1,7 @@
-import adapter from '@sveltejs/adapter-static';
-import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
+import adapter from "@sveltejs/adapter-static";
+import { vitePreprocess } from "@sveltejs/vite-plugin-svelte";
 
-const dev = process.env.NODE_ENV === 'development';
+const dev = process.env.NODE_ENV === "development";
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
@@ -15,12 +15,12 @@ const config = {
 		// See https://svelte.dev/docs/kit/adapters for more information about adapters.
 		adapter: adapter(),
 		paths: {
-			base: dev ? '' : '/WaterTijdReis'
+			base: dev ? "" : "/WaterTijdReis",
 		},
 		prerender: {
-			handleHttpError: 'warn' // voorkomt crash bij 404
-		}
-	}
+			handleHttpError: "warn", // voorkomt crash bij 404
+		},
+	},
 };
 
 export default config;
