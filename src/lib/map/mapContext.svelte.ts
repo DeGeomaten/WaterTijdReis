@@ -39,8 +39,16 @@ export class MapContext {
 	toastContent: string = $state("");
 
 	constructor() {
+		// URL sync
 		$effect(() => {
 			syncStateToURL(this);
+		});
+
+		// Overlays sync
+		$effect(() => {
+			if (!this.maplibreLoaded || !this.map) return;
+
+			this.updateOverlays(this.layerOptions.overlay);
 		});
 
 		// Basemap & opacity sync
@@ -64,35 +72,6 @@ export class MapContext {
 				});
 			}
 		});
-
-		// Overlays sync
-		$effect(() => {
-			if (!this.maplibreLoaded || !this.map) return;
-
-			this.updateOverlays(this.layerOptions.overlay);
-		});
-	}
-
-	get activeMap(): maplibregl.Map {
-		if (!this.map) {
-			throw new Error("MapContext: Maplibre is not initialized yet. Call init() first.");
-		}
-		return this.map;
-	}
-
-	resetState() {
-		if (!this.maplibreLoaded || !this.historic.mapsLoaded) return;
-		this.historic.selectedMapId = null;
-		this.restoreView();
-
-		this.activeMap.easeTo({
-			center: [defaultState.lng, defaultState.lat],
-			zoom: defaultState.zoom,
-			pitch: 0,
-			bearing: 0,
-		});
-
-		this.layerOptions.historicMapsOpacity = defaultState.historicMapsOpacity;
 	}
 
 	init(containerId: string) {
@@ -145,6 +124,28 @@ export class MapContext {
 
 			this.maplibreLoaded = true;
 		});
+	}
+
+	get activeMap(): maplibregl.Map {
+		if (!this.map) {
+			throw new Error("MapContext: Maplibre is not initialized yet. Call init() first.");
+		}
+		return this.map;
+	}
+
+	resetState() {
+		if (!this.maplibreLoaded || !this.historic.mapsLoaded) return;
+		this.historic.selectedMapId = null;
+		this.restoreView();
+
+		this.activeMap.easeTo({
+			center: [defaultState.lng, defaultState.lat],
+			zoom: defaultState.zoom,
+			pitch: 0,
+			bearing: 0,
+		});
+
+		this.layerOptions.historicMapsOpacity = defaultState.historicMapsOpacity;
 	}
 
 	zoomIn() {

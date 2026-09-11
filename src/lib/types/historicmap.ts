@@ -1,5 +1,5 @@
-import { WarpedMap, WarpedMapEvent, WarpedMapEventType } from "@allmaps/render";
-import type { GeoJsonProperties, Geometry, Feature, Polygon } from "geojson";
+import { WarpedMap } from "@allmaps/render";
+import type { Polygon } from "geojson";
 
 export type HistoricMap = {
 	id: string;

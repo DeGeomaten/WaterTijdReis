@@ -169,8 +169,6 @@ export class HistoricMapsContext {
 		this.mapContext.activeMap.on("moveend", () => this.updateViewportMaps());
 
 		this.updateViewportMaps();
-
-		await this.warpedMapLayer.renderer?.tileCache.allRequestedTilesLoaded();
 	}
 
 	#initOutlineSources() {
