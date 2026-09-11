@@ -38,12 +38,9 @@
 </header>
 
 <style>
-	.wave {
-		animation: wave 1000ms ease-in-out infinite alternate;
-	}
-
 	.wave-loading {
-		animation: wave-loading 600ms ease-in-out infinite alternate;
+		animation: wave 300ms ease-in-out infinite alternate;
+		/* animation: wave-loading 600ms ease-in-out infinite alternate; */
 	}
 
 	@keyframes wave-loading {
