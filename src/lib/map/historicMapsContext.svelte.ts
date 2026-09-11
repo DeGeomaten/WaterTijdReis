@@ -100,6 +100,16 @@ export class HistoricMapsContext {
 	pinnedMap: HistoricMap | null = $derived(this.pinnedMapId ? (this.mapsById.get(this.pinnedMapId) ?? null) : null);
 	pinnedMapView: MapView | null = $state(null);
 
+	previewMap: HistoricMap | null = $derived.by(() => {
+		if (this.clickedHistoricMap) return this.clickedHistoricMap;
+		if (this.mapContext.sheetIndexVisible) return this.hoveredHistoricMap;
+
+		// When a user is zoomed in and only one historic map fills the screen, the info and thumbnail of that map will be 'previewed'
+		if (this.mapsLoaded && this.visibleMapsInViewport.size === 1)
+			return Array.from(this.visibleMapsInViewport.values())[0] ?? null;
+		return null;
+	});
+
 	hoveredHistoricMap = $state<HistoricMap | null>(null);
 	clickedHistoricMap = $state<HistoricMap | null>(null);
 

@@ -11,6 +11,7 @@
 	const MANIFEST_URL = "https://tu-delft-heritage.github.io/watertijdreis-data/collection.json";
 
 	const mapContext = getContext<MapContext>("mapContext");
+	const historicCtx = mapContext.historic;
 
 	// Global IIIF Collection Manifest
 	let manifestCollection = $state<any>(null);
@@ -23,17 +24,7 @@
 			.catch(console.error);
 	});
 
-	let historicMap = $derived.by(() => {
-		const visibleMaps = mapContext.historic.visibleMapsInViewport;
-		const singleInViewport = visibleMaps && visibleMaps.size === 1 ? visibleMaps.values().next().value : null;
-
-		return (
-			mapContext.historic.selectedMap ||
-			mapContext.historic.clickedHistoricMap ||
-			(mapContext.sheetIndexVisible ? mapContext.historic.hoveredHistoricMap : null) ||
-			singleInViewport
-		);
-	});
+	let historicMap = $derived(historicCtx.previewMap || historicCtx.selectedMap);
 
 	let prevEdition = $state<number | null>(null);
 	let prevBis = $state<boolean | null>(null);
@@ -75,7 +66,7 @@
 		if (!variants.length) return null;
 		const mainVariant = variants.find((i: any) => !getMetadata(i).flat().includes("Type"));
 		if (!mainVariant) return null;
-		const mapsArray = Array.from(mapContext.historic.mapsById.values());
+		const mapsArray = Array.from(historicCtx.mapsById.values());
 		return mapsArray.find((i: any) => i.manifestId === mainVariant.id);
 	});
 
@@ -112,13 +103,7 @@
 	});
 
 	// For the thumbnail 3D Thumbnail animation
-	let isPreviewing = $derived(
-		Boolean(
-			mapContext.historic.selectedMap ||
-				mapContext.historic.clickedHistoricMap ||
-				(mapContext.sheetIndexVisible && mapContext.historic.hoveredHistoricMap)
-		)
-	);
+	let isPreviewing = $derived(Boolean(historicCtx.selectedMap || historicCtx.previewMap));
 
 	let thumbnailEl = $state<HTMLElement | null>(null);
 	let hasAnimatedIn = $state(false);
@@ -146,7 +131,7 @@
 	let sheetInformationEl = $state<HTMLElement | null>(null);
 
 	$effect(() => {
-		if (!mapContext.historic.selectedMap) {
+		if (!historicCtx.selectedMap) {
 			sheetInformationVisible = false;
 		}
 	});
@@ -162,11 +147,11 @@
 	}
 
 	async function handleSelectVariant(variant: any) {
-		const mapsArray = Array.from(mapContext.historic.mapsById.values());
+		const mapsArray = Array.from(historicCtx.mapsById.values());
 		const existingMap = mapsArray.find((m: any) => m.manifestId === variant.id);
 
 		if (existingMap) {
-			mapContext.historic.changeHistoricMapView(existingMap);
+			historicCtx.changeHistoricMapView(existingMap);
 		} else if (mainSheet) {
 			await registerBacksideMap(variant, mainSheet, mapContext);
 		}
@@ -200,11 +185,9 @@
 {#if historicMap}
 	<div
 		class="from-wtr-blue/50 to-wtr-blue/50 sm:from-wtr-blue fixed right-2 bottom-2 left-2 z-[1000] overflow-hidden rounded-lg bg-gradient-to-r from-[270px] shadow-lg transition-all duration-300 sm:top-auto sm:to-transparent sm:to-[calc(50%-30px)]
-		{sheetInformationVisible || mapContext.historic.selectedMap
-			? 'bg-wtr-blue w-auto sm:w-87'
-			: 'w-auto sm:w-[calc(100vh-16px)]'}"
+		{sheetInformationVisible || historicCtx.selectedMap ? 'bg-wtr-blue w-auto sm:w-87' : 'w-auto sm:w-[calc(100vh-16px)]'}"
 		style:max-height={sheetInformationVisible ? "60vh" : "120px"}
-		style:pointer-events={mapContext.historic.selectedMap ? "auto" : "none"}
+		style:pointer-events={historicCtx.selectedMap ? "auto" : "none"}
 		transition:fade={{ duration: 300 }}
 	>
 		<!-- HEADBAR HEADER -->
@@ -213,8 +196,8 @@
 				<div
 					bind:this={thumbnailEl}
 					onclick={() => {
-						if (historicMap && !mapContext.historic.selectedMap) {
-							mapContext.historic.selectedMapId = historicMap.id;
+						if (historicMap && !historicCtx.selectedMap) {
+							historicCtx.selectedMapId = historicMap.id;
 						}
 					}}
 					class="pointer-events-auto relative block h-22 w-fit origin-[10%_100%] cursor-pointer overflow-hidden rounded-sm opacity-0 shadow-md transition-all duration-500 will-change-transform"
@@ -246,7 +229,7 @@
 					<button
 						type="button"
 						onclick={() => {
-							if (!mapContext.historic.selectedMap) mapContext.historic.selectedMapId = historicMap.id;
+							if (!historicCtx.selectedMap) historicCtx.selectedMapId = historicMap.id;
 						}}
 						class="text-wtr-subtle-blue pointer-events-auto line-clamp-2 max-w-50 text-left text-base font-bold transition-colors hover:underline"
 					>
@@ -257,7 +240,7 @@
 						{historicMap.yearEnd} &middot; Editie {historicMap.edition}{historicMap.bis ? " BIS" : ""}
 					</p>
 
-					{#if mapContext.historic.selectedMap}
+					{#if historicCtx.selectedMap}
 						<button
 							type="button"
 							transition:slide={{ duration: 200 }}
@@ -311,7 +294,7 @@
 								{@const rawType = metadata.find((i) => i[0] === "Type")?.[1] || "Hoofdblad (voorkant)"}
 								{@const displayType = rawType.replace("Achterkant", "Hoofdblad (achterkant)")}
 
-								{@const mapsArray = Array.from(mapContext.historic.mapsById.values())}
+								{@const mapsArray = Array.from(historicCtx.mapsById.values())}
 								{@const variantMap = mapsArray.find((m: any) => m.manifestId === variant.id)}
 
 								{@const imageService =

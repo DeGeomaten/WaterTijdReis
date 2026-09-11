@@ -110,7 +110,7 @@ export class HistoricMapSeries {
 	}
 
 	applyFilter(filter: Filter = this.filter) {
-		if (!this.mapsLoaded || !this.enabled || this.context.selectedMap) return;
+		if (!this.mapsLoaded || !this.enabled) return;
 
 		const { mapsToColor, mapsToDesaturate, mapsToHide, adjustedYearEnd } = calculateFilteredMapIds(
 			this.mapsByNumber,

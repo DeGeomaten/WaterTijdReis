@@ -5,31 +5,17 @@
 	import { draw, fade } from "svelte/transition";
 
 	const mapContext = getContext<MapContext>("mapContext");
+	const historicCtx = mapContext.historic;
 
-	let previewHistoricMap = $derived.by(() => {
-		const visibleMaps = mapContext.historic.visibleMapsInViewport;
-		if (visibleMaps && visibleMaps.size === 1) {
-			return visibleMaps.values().next().value;
-		}
-		return null;
-	});
-
-	let activeHistoricMap = $derived.by(() => {
-		return (
-			mapContext.historic.clickedHistoricMap ||
-			mapContext.historic.selectedMap ||
-			previewHistoricMap ||
-			(mapContext.sheetIndexVisible ? mapContext.historic.hoveredHistoricMap : null)
-		);
-	});
+	let activeHistoricMap = $derived(historicCtx.selectedMap || historicCtx.previewMap);
 
 	let width: number = $state(160);
 	let height: number = $state(200);
 
 	let polygons = $derived.by(() => {
-		if (!mapContext.historic.mapsLoaded || !mapContext.historic.visibleMaps) return [];
+		if (!historicCtx.mapsLoaded || !historicCtx.visibleMaps) return [];
 
-		const mapArray = Array.from(mapContext.historic.visibleMaps.values());
+		const mapArray = Array.from(historicCtx.visibleMaps.values());
 		return mapArray.map((i) => ({
 			id: i.id,
 			type: "Feature" as const,
@@ -59,8 +45,7 @@
 		const isActive = activeHistoricMap?.id === polyId;
 		if (isActive) return "#ff44aaaa";
 
-		const isVisibleInViewport =
-			!mapContext.historic.selectedMap && mapContext.historic.visibleMapsInViewport?.has(polyId);
+		const isVisibleInViewport = !historicCtx.selectedMap && historicCtx.visibleMapsInViewport?.has(polyId);
 
 		return isVisibleInViewport ? "#ff44aa44" : "#ff44aa11";
 	}
@@ -71,7 +56,7 @@
 	});
 
 	let viewportRect = $derived.by(() => {
-		if (!viewport || mapContext.historic.selectedMap) return null;
+		if (!viewport || historicCtx.selectedMap) return null;
 
 		const minXClamp = viewBox[0] + scaleFactor * 2;
 		const minYClamp = viewBox[1] + scaleFactor * 2;
@@ -130,7 +115,7 @@
 	}
 </script>
 
-{#if mapContext.historic.visibleMaps && mapContext.historic.visibleMaps.size}
+{#if historicCtx.visibleMaps && historicCtx.visibleMaps.size}
 	<svg
 		{width}
 		{height}
