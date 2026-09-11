@@ -17,3 +17,11 @@ export type HistoricMap = {
 	y: number;
 	type: string | undefined;
 };
+
+export type Filter = {
+	yearStart: number;
+	yearEnd: number;
+	edition: "All" | 1 | 2 | 3 | 4 | 5;
+	bis: boolean;
+	type: undefined | "WVE" | "HWP";
+};

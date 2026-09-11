@@ -1,5 +1,18 @@
 import type { HistoricMap } from "$lib/types/historicmap";
 
+export function transformToIIIFInfoJson(item: any) {
+	const { id, width, height, tiles } = item.resource;
+	return {
+		"@context": "http://iiif.io/api/image/2/context.json",
+		"@id": id,
+		profile: "http://iiif.io/api/image/2/level2.json",
+		protocol: "http://iiif.io/api/image",
+		width,
+		height,
+		tiles,
+	};
+}
+
 export async function registerBacksideMap(
 	canvasManifest: any,
 	mainSheet: HistoricMap,

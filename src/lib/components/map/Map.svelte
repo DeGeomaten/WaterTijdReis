@@ -52,11 +52,7 @@
 		mapContext.applyStateFromURL();
 
 		const q = new URLSearchParams(window.location.search);
-		const bladId = q.get("blad");
-		if (bladId) {
-			const historicMap = mapContext.historic.mapsById.get(bladId);
-			if (historicMap) mapContext.historic.setHistoricMapView(historicMap);
-		}
+		mapContext.historic.selectedMapId = q.get("blad") ?? null;
 	}
 </script>
 

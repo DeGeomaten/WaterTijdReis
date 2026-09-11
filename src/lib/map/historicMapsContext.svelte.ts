@@ -1,32 +1,12 @@
-import type { HistoricMap } from "$lib/types/historicmap";
+import type { Filter, HistoricMap } from "$lib/types/historicmap";
 import { SvelteMap } from "svelte/reactivity";
 import type { MapContext } from "./mapContext.svelte";
 import { WarpedMapLayer } from "@allmaps/maplibre";
 import { addOutlineLayers } from "./mapLayers.svelte";
 import * as turf from "@turf/turf";
+import { transformToIIIFInfoJson } from "$lib/utils/allmaps";
 
 const ANNOTATION_URL = "maps-sorted-by-edition.json";
-
-export type Filter = {
-	yearStart: number;
-	yearEnd: number;
-	edition: "All" | 1 | 2 | 3 | 4 | 5;
-	bis: boolean;
-	type: undefined | "WVE" | "HWP";
-};
-
-function transformToIIIFInfoJson(item: any) {
-	const { id, width, height, tiles } = item.resource;
-	return {
-		"@context": "http://iiif.io/api/image/2/context.json",
-		"@id": id,
-		profile: "http://iiif.io/api/image/2/level2.json",
-		protocol: "http://iiif.io/api/image",
-		width,
-		height,
-		tiles,
-	};
-}
 
 export class HistoricMapsContext {
 	private mapContext: MapContext;
@@ -66,8 +46,12 @@ export class HistoricMapsContext {
 		return maps;
 	});
 
-	selectedMap: HistoricMap | null = $state(null);
-	pinnedMap: HistoricMap | null = $state(null);
+	selectedMapId: string | null = $state(null);
+	pinnedMapId: string | null = $state(null);
+	selectedMap: HistoricMap | null = $derived(
+		this.selectedMapId ? (this.mapsById.get(this.selectedMapId) ?? null) : null
+	);
+	pinnedMap: HistoricMap | null = $derived(this.pinnedMapId ? (this.mapsById.get(this.pinnedMapId) ?? null) : null);
 
 	hoveredHistoricMap = $state<HistoricMap | null>(null);
 	clickedHistoricMap = $state<HistoricMap | null>(null);
@@ -79,7 +63,6 @@ export class HistoricMapsContext {
 	#gridResetTimer: ReturnType<typeof setTimeout> | null = null;
 	#gridVisibilityTimer: ReturnType<typeof setTimeout> | null = null;
 	#rippleResetTimer: ReturnType<typeof setTimeout> | null = null;
-	#fillFadeOutTimer: ReturnType<typeof setTimeout> | null = null;
 	#featureTimeouts: Record<number | string, ReturnType<typeof setTimeout>> = {};
 	#clickedMapTimeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -93,6 +76,13 @@ export class HistoricMapsContext {
 
 	constructor(mapContext: MapContext) {
 		this.mapContext = mapContext;
+
+		$effect(() => {
+			if (!this.mapsLoaded) return;
+
+			if (this.selectedMap) this.setHistoricMapView(this.selectedMap);
+			else this.mapContext.restoreView();
+		});
 	}
 
 	async init() {
@@ -105,7 +95,7 @@ export class HistoricMapsContext {
 		await this.load(ANNOTATION_URL);
 
 		this.mapContext.activeMap.on("mousemove", "map-outlines-fill", (e) => this.handleMapMouseMove(e));
-		this.mapContext.activeMap.on("mouseleave", "map-outlines-fill", (e) => this.handleMapMouseLeave(e));
+		this.mapContext.activeMap.on("mouseleave", "map-outlines-fill", (e) => this.handleMapMouseLeave());
 		this.mapContext.activeMap.on("moveend", () => {
 			this.updateViewportMaps();
 		});
@@ -114,6 +104,9 @@ export class HistoricMapsContext {
 		});
 
 		this.updateViewportMaps();
+
+		await this.warpedMapLayer.renderer?.tileCache.allRequestedTilesLoaded();
+		this.mapsLoaded = true;
 	}
 
 	private updateViewportMaps() {
@@ -162,7 +155,7 @@ export class HistoricMapsContext {
 		const historicMap = this.mapsById.get(mapId) || null;
 
 		if (this.#shouldOpenImmediately(historicMap)) {
-			this.setHistoricMapView(historicMap);
+			this.selectedMapId = historicMap?.id;
 			return;
 		}
 
@@ -307,7 +300,7 @@ export class HistoricMapsContext {
 			const data = await res.json();
 
 			this.mapContext.map.on("maptilesloadedfromsprites", () => {
-				this.mapsLoaded = true;
+				// this.mapsLoaded = true;
 				this.applyFilter();
 			});
 
@@ -462,7 +455,7 @@ export class HistoricMapsContext {
 		this.mapContext.toastContent = `Je ziet nu kaarten van ${Math.round(filter.yearEnd)} en ouder`;
 	}
 
-	setHistoricMapView(historicMap: HistoricMap, view: MapView | undefined) {
+	setHistoricMapView(historicMap: HistoricMap, view?: MapView | undefined) {
 		if (!this.mapsLoaded) return;
 
 		this.#clickedFeatureId = null;
@@ -500,7 +493,7 @@ export class HistoricMapsContext {
 			applyMask: false,
 		});
 
-		this.selectedMap = historicMap;
+		this.selectedMapId = historicMap.id;
 
 		this.mapContext.saveMapView();
 
@@ -534,7 +527,7 @@ export class HistoricMapsContext {
 
 		const optionsByMapId = new Map();
 
-		optionsByMapId.set(this.selectedMap?.id, {
+		optionsByMapId.set(this.selectedMapId, {
 			visible: false,
 			transformationType: "thinPlateSpline",
 			applyMask: true,
@@ -566,7 +559,7 @@ export class HistoricMapsContext {
 			);
 		}
 
-		this.selectedMap = historicMap;
+		this.selectedMapId = historicMap.id;
 	}
 
 	handleMapMouseMove(e: any) {

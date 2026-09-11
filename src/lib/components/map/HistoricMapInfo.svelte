@@ -214,7 +214,7 @@
 					bind:this={thumbnailEl}
 					onclick={() => {
 						if (historicMap && !mapContext.historic.selectedMap) {
-							mapContext.historic.setHistoricMapView(historicMap);
+							mapContext.historic.selectedMapId = historicMap.id;
 						}
 					}}
 					class="pointer-events-auto relative block h-22 w-fit origin-[10%_100%] cursor-pointer overflow-hidden rounded-sm opacity-0 shadow-md transition-all duration-500 will-change-transform"
@@ -246,7 +246,7 @@
 					<button
 						type="button"
 						onclick={() => {
-							if (!mapContext.historic.selectedMap) mapContext.historic.setHistoricMapView(historicMap);
+							if (!mapContext.historic.selectedMap) mapContext.historic.selectedMapId = historicMap.id;
 						}}
 						class="text-wtr-subtle-blue pointer-events-auto line-clamp-2 max-w-50 text-left text-base font-bold transition-colors hover:underline"
 					>

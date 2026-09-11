@@ -17,12 +17,12 @@
 	function leftBtnClick() {
 		rightBtnSelected = false;
 		if (
-			mapContext.historic.pinnedMap &&
-			mapContext.historic.selectedMap &&
-			mapContext.historic.pinnedMap.id == mapContext.historic.selectedMap.id
+			mapContext.historic.pinnedMapId &&
+			mapContext.historic.selectedMapId &&
+			mapContext.historic.pinnedMapId == mapContext.historic.selectedMapId
 		)
 			pinnedView = mapContext.saveMapView(false);
-		mapContext.restoreView();
+		mapContext.historic.selectedMapId = null;
 		mapContext.historic.setSheetIndexVisibility(false);
 	}
 
@@ -31,10 +31,10 @@
 
 		if (mapContext.historic.clickedHistoricMap && !mapContext.historic.selectedMap) {
 			mapContext.historic.extendClickedMapTimeout();
-			mapContext.historic.setHistoricMapView(mapContext.historic.clickedHistoricMap);
+			mapContext.historic.selectedMapId = mapContext.historic.clickedHistoricMap.id;
 		} else if (mapContext.historic.pinnedMap && !mapContext.historic.selectedMap) {
 			mapContext.historic.extendClickedMapTimeout();
-			mapContext.historic.setHistoricMapView(mapContext.historic.pinnedMap, pinnedView);
+			mapContext.historic.selectedMapId = mapContext.historic.pinnedMapId;
 		} else {
 			if (!mapContext.historic.setSheetIndexVisibility()) leftBtnClick();
 		}
@@ -134,11 +134,11 @@
 				class="cursor-pointer"
 				onclick={(e) => {
 					e.stopPropagation();
-					if (mapContext.historic.pinnedMap) mapContext.historic.pinnedMap = null;
-					else mapContext.historic.pinnedMap = mapContext.historic.selectedMap;
+					if (mapContext.historic.pinnedMapId) mapContext.historic.pinnedMapId = null;
+					else mapContext.historic.pinnedMapId = mapContext.historic.selectedMapId;
 				}}
 			>
-				{#if mapContext.historic.pinnedMap && mapContext.historic.pinnedMap.id == mapContext.historic.selectedMap.id}
+				{#if mapContext.historic.pinnedMap && mapContext.historic.pinnedMapId == mapContext.historic.selectedMapId}
 					<PushPin size="18" class="relative -top-[2px] ml-1 inline" weight="fill"></PushPin>
 				{:else}
 					<PushPin size="18" class="relative -top-[2px] ml-1 inline" weight="regular"></PushPin>
@@ -152,7 +152,7 @@
 				class="cursor-pointer"
 				onclick={(e) => {
 					e.stopPropagation();
-					mapContext.historic.pinnedMap = null;
+					mapContext.historic.pinnedMapId = null;
 				}}
 			>
 				<PushPin size="18" class="relative -top-[2px] ml-1 inline" weight="fill"></PushPin>

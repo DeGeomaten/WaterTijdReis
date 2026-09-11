@@ -1,37 +1,15 @@
 import maplibregl from "maplibre-gl";
-import type { LngLatLike, Map as MaplibreMap } from "maplibre-gl";
+import type { Map as MaplibreMap } from "maplibre-gl";
 import * as pmtiles from "pmtiles";
 import { addBackgroundLayers, addUserLocationCircle } from "./mapLayers.svelte";
 import { basemapStyle, LABELS_LAYERS } from "$lib/map/basemap";
-import { goto } from "$app/navigation";
 import { HistoricMapsContext } from "./historicMapsContext.svelte";
 import { getValidUserLocation } from "$lib/utils/userLocation";
 import { addGemeentegrenzenLayer, addWaterschapsgrenzenLayer } from "$lib/map/mapLayers.svelte";
 
-const defaultState = {
-	zoom: 6.5,
-	lat: 51.75,
-	lng: 5.5,
-	yearStart: 1865,
-	yearEnd: 1983,
-	edition: "All",
-	bis: false,
-	type: undefined,
-	selectedSheetId: null,
-	pinnedSheetId: null,
-	baseMap: "none",
-	protoMapsWaterInFront: false,
-	protoMapsLabelsInFront: false,
-	historicMapsOpacity: 100,
-};
-
-type LayerOptions = {
-	baseMap: "none" | "protomaps" | "ahn" | "satelliet";
-	protoMapsWaterInFront: boolean;
-	protoMapsLabelsInFront: boolean;
-	historicMapsOpacity: number;
-	overlay: "none" | "waterschapsgrenzen" | "gemeentegrenzen";
-};
+import { type LayerOptions, type MapView } from "$lib/types/map";
+import type { Feature } from "geojson";
+import { applyStateFromURL, syncStateToURL, defaultState } from "./urlStateManager";
 
 export class MapContext {
 	map: MaplibreMap | null = $state(null);
@@ -39,7 +17,7 @@ export class MapContext {
 
 	historic: HistoricMapsContext = new HistoricMapsContext(this);
 
-	viewportPolygon: GeojsonPolygon | null = $state(null);
+	viewportPolygon: Feature | null = $state(null);
 
 	savedMapViews: MapView[] = $state([]);
 	savedLayerVisibility: Record<string, "visible" | "none"> | null = null;
@@ -61,21 +39,8 @@ export class MapContext {
 	toastContent: string = $state("");
 
 	constructor() {
-		// URL Sync
 		$effect(() => {
-			this.historic.filter.yearStart;
-			this.historic.filter.yearEnd;
-			this.historic.filter.edition;
-			this.historic.filter.bis;
-			this.historic.filter.type;
-			this.layerOptions.baseMap;
-			this.layerOptions.protoMapsWaterInFront;
-			this.layerOptions.protoMapsLabelsInFront;
-			this.layerOptions.historicMapsOpacity;
-			this.historic.selectedMap;
-			this.historic.pinnedMap;
-
-			this.syncStateToURL();
+			syncStateToURL(this);
 		});
 
 		// Basemap & opacity sync
@@ -117,6 +82,7 @@ export class MapContext {
 
 	resetState() {
 		if (!this.maplibreLoaded || !this.historic.mapsLoaded) return;
+		this.historic.selectedMapId = null;
 		this.restoreView();
 
 		this.activeMap.easeTo({
@@ -157,9 +123,7 @@ export class MapContext {
 			bearing: 0,
 			dragRotate: false,
 			touchPitch: false,
-			touchRotate: false,
 			attributionControl: false,
-			preserveDrawingBuffer: true,
 		});
 		this.map.dragRotate.disable();
 		this.map.keyboard.disable();
@@ -175,106 +139,12 @@ export class MapContext {
 
 			this.updateViewport();
 			this.activeMap.on("move", () => this.updateViewport());
-			this.activeMap.on("moveend", () => this.syncStateToURL());
+			this.activeMap.on("moveend", () => syncStateToURL(this));
 
-			this.applyStateFromURL();
+			applyStateFromURL(this);
 
 			this.maplibreLoaded = true;
 		});
-	}
-
-	syncStateToURL() {
-		if (!this.maplibreLoaded) return;
-
-		const params = new URLSearchParams();
-		const center = this.activeMap.getCenter();
-		const zoom = this.activeMap.getZoom();
-
-		const setIfChanged = (key: string, value: any, defaultValue: any) => {
-			if (value !== defaultValue) params.set(key, String(value));
-		};
-
-		if (
-			center.lat.toFixed(3) !== defaultState.lat.toFixed(3) ||
-			center.lng.toFixed(3) !== defaultState.lng.toFixed(3)
-		) {
-			params.set("c", `${center.lat.toFixed(3)}_${center.lng.toFixed(3)}`);
-		}
-		setIfChanged("zoom", zoom.toFixed(2), defaultState.zoom.toFixed(2));
-
-		if (
-			this.historic.filter.yearStart !== defaultState.yearStart ||
-			Math.round(this.historic.filter.yearEnd) !== defaultState.yearEnd
-		) {
-			params.set("period", `${this.historic.filter.yearStart}_${Math.round(this.historic.filter.yearEnd)}`);
-		}
-		setIfChanged("editie", this.historic.filter.edition, defaultState.edition);
-		setIfChanged("bis", this.historic.filter.bis ? "1" : "0", defaultState.bis ? "1" : "0");
-		if (this.historic.filter.type) params.set("type", this.historic.filter.type);
-
-		if (this.historic.selectedMap) params.set("blad", this.historic.selectedMap.id);
-		if (this.historic.pinnedMap) params.set("pinned", this.historic.pinnedMap.id);
-
-		setIfChanged("achtergrondkaart", this.layerOptions.baseMap, defaultState.baseMap);
-		setIfChanged(
-			"pwf",
-			this.layerOptions.protoMapsWaterInFront ? "1" : "0",
-			defaultState.protoMapsWaterInFront ? "1" : "0"
-		);
-		setIfChanged(
-			"plf",
-			this.layerOptions.protoMapsLabelsInFront ? "1" : "0",
-			defaultState.protoMapsLabelsInFront ? "1" : "0"
-		);
-		setIfChanged("opacity", this.layerOptions.historicMapsOpacity, defaultState.historicMapsOpacity);
-
-		goto(`?${params.toString()}`, {
-			replaceState: true,
-			noScroll: true,
-			keepFocus: true,
-		});
-	}
-
-	applyStateFromURL() {
-		const q = new URLSearchParams(window.location.search);
-		if (window.location.hash.startsWith("#/")) return;
-
-		let lat = defaultState.lat;
-		let lng = defaultState.lng;
-		const centerParam = q.get("c");
-		if (centerParam) {
-			const [latStr, lngStr] = centerParam.split("_");
-			if (latStr && lngStr) {
-				lat = parseFloat(latStr) || defaultState.lat;
-				lng = parseFloat(lngStr) || defaultState.lng;
-			}
-		}
-		const zoom = parseFloat(q.get("zoom") ?? "") || defaultState.zoom;
-		this.activeMap.jumpTo({ center: [lng, lat], zoom });
-
-		const yearParam = q.get("period");
-		if (yearParam) {
-			const [ys, ye] = yearParam.split("_");
-			this.historic.filter.yearStart = parseInt(ys) || defaultState.yearStart;
-			this.historic.filter.yearEnd = parseInt(ye) || defaultState.yearEnd;
-		}
-
-		const ed = q.get("editie");
-		this.historic.filter.edition = ed === "All" || ed === null ? "All" : (Number(ed) as any);
-		this.historic.filter.bis = q.get("bis") === "1";
-		this.historic.filter.type = (q.get("type") as any) || defaultState.type;
-
-		this.layerOptions.baseMap = (q.get("achtergrondkaart") as any) || defaultState.baseMap;
-		this.layerOptions.protoMapsWaterInFront = q.get("pwf") === "1";
-		this.layerOptions.protoMapsLabelsInFront = q.get("plf") === "1";
-		this.layerOptions.historicMapsOpacity = parseInt(q.get("opacity") ?? "") || defaultState.historicMapsOpacity;
-
-		const bladId = q.get("blad");
-		const pinnedId = q.get("pinned");
-
-		// TODO: watch for when maps are loaded!!
-		if (bladId) setTimeout(() => (this.historic.selectedMap = this.historic.mapsById.get(bladId) || null), 500);
-		if (pinnedId) setTimeout(() => (this.historic.pinnedMap = this.historic.mapsById.get(pinnedId) || null), 500);
 	}
 
 	zoomIn() {
@@ -287,7 +157,7 @@ export class MapContext {
 		this.activeMap.zoomOut({ duration: 250 });
 	}
 
-	flyToFeature(feature) {
+	flyToFeature(feature: Feature) {
 		const { geometry, bbox } = feature;
 		if (bbox) {
 			const [minLng, minLat, maxLng, maxLat] = bbox;
@@ -530,6 +400,7 @@ export class MapContext {
 			this.userLocationActive = true;
 
 			this.flyToFeature({
+				type: "Feature",
 				geometry: { type: "Point", coordinates: [lng, lat] },
 				properties: { label: "Your location" },
 			});
@@ -544,8 +415,9 @@ export class MapContext {
 					this.userLocationTimeout = null;
 				}, 400);
 			}, 2500);
-		} catch (err: any) {
-			if (err.message === "OUT_OF_BOUNDS") {
+		} catch (err) {
+			const errorMessage = err instanceof Error ? err.message : String(err);
+			if (errorMessage === "OUT_OF_BOUNDS") {
 				alert("Je bent te ver buiten Nederland!");
 			} else {
 				console.error(err);
